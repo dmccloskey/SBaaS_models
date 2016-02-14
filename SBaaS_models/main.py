@@ -15,14 +15,14 @@ engine = pg_orm.get_engine();
 
 # your app...
 # SBaaS paths:
-sys.path.append(pg_settings.datadir_settings['drive']+'/SBaaS_base')
-sys.path.append(pg_settings.datadir_settings['drive']+'/SBaaS_models')
+sys.path.append(pg_settings.datadir_settings['github']+'/SBaaS_base')
+sys.path.append(pg_settings.datadir_settings['github']+'/SBaaS_models')
 # SBaaS dependencies paths:
 sys.path.append(pg_settings.datadir_settings['github']+'/io_utilities')
 sys.path.append(pg_settings.datadir_settings['github']+'/calculate_utilities')
 sys.path.append(pg_settings.datadir_settings['github']+'/molmass')
-sys.path.append(pg_settings.datadir_settings['drive']+'/genomeScale_MFA')
-sys.path.append(pg_settings.datadir_settings['drive']+'/genomeScale_MFA_INCA')
+sys.path.append(pg_settings.datadir_settings['github']+'/genomeScale_MFA')
+sys.path.append(pg_settings.datadir_settings['github']+'/genomeScale_MFA_INCA')
 
 #make the MFA table
 from SBaaS_models.models_MFA_execute import models_MFA_execute
