@@ -71,7 +71,8 @@ class models_COBRA_execute(models_COBRA_io):
             write_cobra_model_to_sbml_file(cobra_model, 'cobra_model_tmp.xml');
             # upload the model to the database
             self.import_dataStage02PhysiologyModel_sbml(model_id_O, date_O, 'cobra_model_tmp.xml');
-    def make_modelFromRxnsAndMetsTables(self,model_id_I=None,model_id_O=None,date_O=None,description=None,                       
+    def make_modelFromRxnsAndMetsTables(self,
+                model_id_I=None,model_id_O=None,date_O=None,description=None,                       
                 ko_list=[],flux_dict={},rxn_include_list=[],
                 convert2irreversible_I=False,revert2reversible_I=False,
                 convertPathway2individualRxns_I=False,
