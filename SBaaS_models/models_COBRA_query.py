@@ -9,6 +9,8 @@ from SBaaS_base.sbaas_base_query_delete import sbaas_base_query_delete
 from SBaaS_base.sbaas_template_query import sbaas_template_query
 #sbaas models
 from .models_COBRA_postgresql_models import *
+#dependencies
+from .models_COBRA_dependencies import models_COBRA_dependencies
 
 class models_COBRA_query(sbaas_template_query):
     def initialize_supportedTables(self):
@@ -334,7 +336,99 @@ class models_COBRA_query(sbaas_template_query):
             return rxnIDs_O;
         except SQLAlchemyError as e:
             print(e);
-            
+    def getGroup_subsystemsAndGenesAndCount_modelID_dataStage02PhysiologyModelReactions(
+        self,model_id_I):
+        '''Query unique subsystems, genes, and counts of genes in that subsystem by model_id
+        '''
+        try:
+            data = self.session.query(data_stage02_physiology_modelReactions.genes,
+                    data_stage02_physiology_modelReactions.subsystem).filter(
+                    data_stage02_physiology_modelReactions.model_id.like(model_id_I),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).all();
+            # roll-up the subsystem and genes into counts
+            d_tmp = {};
+            for d_cnt,d in enumerate(data):
+                if d_cnt==0: d_tmp={};
+                if not d.subsystem in d_tmp.keys():
+                    d_tmp[d.subsystem]={};
+                for g_cnt,g in enumerate(d.genes):
+                    if not g in d_tmp[d.subsystem].keys():
+                        d_tmp[d.subsystem][g]=0;
+                    else:
+                        d_tmp[d.subsystem][g]+=1;
+            # roll-out the subsystem and genes and counts into rows
+            rows_O = [];
+            for k1,v1 in d_tmp.items():
+                for k2,v2 in v1.items():
+                    rows_O.append(
+                        {'subsystem':k1,
+                         'gene':k2,
+                         'count':v2,
+                        });
+            return rows_O;
+        except SQLAlchemyError as e:
+            print(e);
+    def getGroup_subsystemsAndRxnIDAndCount_modelID_dataStage02PhysiologyModelReactions(self,model_id_I):
+        '''Query unique subsystems, rxn_ids, and counts of rxn_ids in that subsystem by model_id
+        '''
+        try:
+            data = self.session.query(data_stage02_physiology_modelReactions.rxn_id,
+                    data_stage02_physiology_modelReactions.subsystem).filter(
+                    data_stage02_physiology_modelReactions.model_id.like(model_id_I),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).all();
+            # reformat with a default count=1
+            # as all rxn_ids are unique
+            rows_O = [{'subsystem':d.subsystem,'rxn_id':d.rxn_id,'count':1} for d in data];
+            return rows_O;
+        except SQLAlchemyError as e:
+            print(e);  
+    def getGroup_subsystemsAndMetIDAndCount_modelID_dataStage02PhysiologyModelReactions(
+        self,model_id_I,deformat_metID_I = True):
+        '''Query unique subsystems, met_ids, and counts of met_ids in that subsystem by model_id
+        INPUT:
+        model_id_I = str, model_id
+        deformat_metID_I = boolean, remove formatting and compartment id
+        '''
+        dep = models_COBRA_dependencies();
+        try:
+            data = self.session.query(data_stage02_physiology_modelReactions.reactants_ids,
+                    data_stage02_physiology_modelReactions.products_ids,
+                    data_stage02_physiology_modelReactions.reactants_stoichiometry,
+                    data_stage02_physiology_modelReactions.products_stoichiometry,
+                    data_stage02_physiology_modelReactions.subsystem).filter(
+                    data_stage02_physiology_modelReactions.model_id.like(model_id_I),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).all();
+            # roll-up the subsystem and genes into counts
+            d_tmp = {};
+            for d_cnt,d in enumerate(data):
+                if d_cnt==0: d_tmp={};
+                if not d.subsystem in d_tmp.keys():
+                    d_tmp[d.subsystem]={};
+                for r_cnt,r in enumerate(d.reactants_ids):
+                    if deformat_metID_I: r = dep.deformat_metid(r);
+                    if not r in d_tmp[d.subsystem].keys():
+                        d_tmp[d.subsystem][r]=0;
+                    else:
+                        d_tmp[d.subsystem][r]+=abs(d.reactants_stoichiometry[r_cnt]);
+                for r_cnt,r in enumerate(d.products_ids):
+                    if deformat_metID_I: r = dep.deformat_metid(r);
+                    if not r in d_tmp[d.subsystem].keys():
+                        d_tmp[d.subsystem][r]=0;
+                    else:
+                        d_tmp[d.subsystem][r]+=abs(d.products_stoichiometry[r_cnt]);
+            # roll-out the subsystem and genes and counts into rows
+            rows_O = [];
+            for k1,v1 in d_tmp.items():
+                for k2,v2 in v1.items():
+                    rows_O.append(
+                        {'subsystem':k1,
+                         'met_id':k2,
+                         'count':v2,
+                        });
+            return rows_O;
+        except SQLAlchemyError as e:
+            print(e);
+
     ## Query from data_stage02_physiology_modelMetabolites
     # query formula from data_stage02_physiology_modelMetabolites
     def get_formula_modelIDAndMetID_dataStage02PhysiologyModelMetabolites(self,model_id_I, met_id_I):

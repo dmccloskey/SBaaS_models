@@ -181,6 +181,14 @@ class models_COBRA_dependencies():
         met_formatted = re.sub('[)]','_RPARANTHES_',met_formatted)
         met_formatted +='_' + compartment_id_I;
         return met_formatted;
+    def deformat_metid(self,met_id_I):
+        met_deformatted = met_id_I
+        met_deformatted = re.sub('_DASH_','-',met_deformatted)
+        met_deformatted = re.sub('_LPARANTHES_','[(]',met_deformatted)
+        met_deformatted = re.sub('_RPARANTHES_','[)]',met_deformatted)
+        met_deformatted_lst = met_deformatted.split('_')[:-1]; #remove the compartment
+        met_deformatted = '_'.join(met_deformatted_lst);
+        return met_deformatted;
     def convert_metid2escherid(self,met_id_I):
         met_formatted = met_id_I;
         met_formatted = re.sub('_DASH_','__',met_formatted)
