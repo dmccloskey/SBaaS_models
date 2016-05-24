@@ -301,6 +301,24 @@ class models_COBRA_query(sbaas_template_query):
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
+    # query genes from data_stage02_physiology_modelReactions
+    def get_geneIDs_modelIDAndRxnID_dataStage02PhysiologyModelReactions(
+        self,model_id_I,rxn_id_I):
+        '''Querry genes by model_id and rxn_id that are used'''
+        try:
+            data = self.session.query(data_stage02_physiology_modelReactions.genes).filter(
+                    data_stage02_physiology_modelReactions.model_id.like(model_id_I),
+                    data_stage02_physiology_modelReactions.rxn_id.like(rxn_id_I),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).all();
+            genes_all = [];
+            genes_unique_O = [];
+            if data: 
+                for d in data:
+                    genes_all.extend(d.genes);
+                genes_unique_O = list(set(genes_all));
+            return genes_unique_O;
+        except SQLAlchemyError as e:
+            print(e);
     # query metabolites from data_stage02_physiology_modelReactions
     def get_metIDs_modelID_dataStage02PhysiologyModelReactions(self,model_id_I):
         '''Querry metabolites by model_id that are used'''

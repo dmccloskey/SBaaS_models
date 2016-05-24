@@ -1,4 +1,6 @@
 from .models_COBRA_io import models_COBRA_io
+# Query objects from LIMS
+from SBaaS_LIMS.lims_biologicalMaterial_query import lims_biologicalMaterial_query
 # Dependencies from cobra
 from cobra.io.sbml import create_cobra_model_from_sbml_file, write_cobra_model_to_sbml_file
 from cobra.io.json import load_json_model, save_json_model
@@ -183,59 +185,6 @@ class models_COBRA_execute(models_COBRA_io):
             cobra_model = self.writeAndLoad_modelTable(cobra_model_sbml);
             models_dict_O[model_id]=cobra_model;
         return models_dict_O;
-    def export_modelFromTable(self,model_id_I,filename_I):
-        '''export a cobra model
-        INPUT:
-        model_id_I = model id
-        filename_I = filename
-        '''
-        
-        # get the model
-        cobra_model_sbml = {};
-        cobra_model_sbml = self.get_row_modelID_dataStage02IsotopomerModels(model_id_I);
-        if not cobra_model_sbml:
-            print('model not found');
-            return;
-        if cobra_model_sbml['file_type'] == 'sbml':
-            with open(filename_I,'w') as file:
-                file.write(cobra_model_sbml['model_file']);
-                file.close();
-        elif cobra_model_sbml['file_type'] == 'json':
-            with open(filename_I,'w') as file:
-                file.write(cobra_model_sbml['model_file']);
-                file.close();
-        else:
-            print('file_type not supported')
-    def export_model(self,model_id_I,filename_I,filetype_I = 'sbml',ko_list=[],flux_dict={}):
-        '''export a cobra model
-        INPUT:
-        model_id_I = model id
-        filename_I = filename
-        filetype_I = if specified, the model will be written to the desired filetype
-                    default: model file in the database
-        '''
-        
-        # get the model
-        cobra_model_sbml = {};
-        cobra_model_sbml = self.get_row_modelID_dataStage02IsotopomerModels(model_id_I);
-        if not cobra_model_sbml:
-            print('model not found');
-            return;
-        # load the model
-        cobra_model = self.writeAndLoad_modelTable(cobra_model_sbml);
-        # Constrain the model
-        self.constrain_modelModelVariables(cobra_model=cobra_model,ko_list=ko_list,flux_dict=flux_dict);
-        # export the model
-        if filetype_I == 'sbml':
-            cobra_model = self.writeAndLoad_modelTable(cobra_model_sbml);
-            #export the model to sbml
-            write_cobra_model_to_sbml_file(cobra_model,filename_I);
-        elif filetype_I == 'json':
-            cobra_model = self.writeAndLoad_modelTable(cobra_model_sbml);
-            #export the model to json
-            save_json_model(cobra_model,filename_I);
-        else:
-            print('file_type not supported')
     def convert_lumpedRxns2IndividualRxns(self,
                           model_id_template_I,pathway_model_id_I,
                           reactions_I):
@@ -274,3 +223,31 @@ class models_COBRA_execute(models_COBRA_io):
             else:
                 reactions_O.append(rxn);
         return reactions_O,metabolites_O;
+    def map_rxnIDs2GeneNames(
+        self,model_id_I,rxn_ids_I=[],
+        biologicalmaterial_I = None):
+        '''map model rxn_ids to gene_names
+        INPUT:
+        model_Id_I = string, name of the model
+        rxn_ids_I = list of reactions
+        biologicalmaterial_I = string, name of the biological material to map
+        OUTPUT:
+        data_O = listDict of model_id,rxn_id,biological_material,gene_name,ordered_locus_name'''
+
+        biologicalmaterial_query = lims_biologicalMaterial_query(self.session,self.engine,self.settings);
+
+        data_O = [];
+        for rxn_id in rxn_ids_I:
+            bnumbers = self.get_geneIDs_modelIDAndRxnID_dataStage02PhysiologyModelReactions(model_id_I,rxn_id);
+            for bnum in bnumbers:
+                gene_names = biologicalmaterial_query.get_geneName_biologicalmaterialIDAndOrderedLocusName_biologicalMaterialGeneReferences(
+                    biologicalmaterial_I,bnum);
+                for gene_name in gene_names:
+                    tmp = {};
+                    tmp['ordered_locus_name'] = bnum;
+                    tmp['gene_name'] = gene_name['gene_name'];
+                    tmp['rxn_id'] = rxn_id;
+                    tmp['model_id'] = model_id_I;
+                    data_O.append(tmp);
+        return data_O;
+

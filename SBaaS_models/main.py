@@ -27,39 +27,8 @@ sys.path.append(pg_settings.datadir_settings['github']+'/molmass')
 sys.path.append(pg_settings.datadir_settings['github']+'/genomeScale_MFA')
 sys.path.append(pg_settings.datadir_settings['github']+'/genomeScale_MFA_INCA')
 
-#make the MFA table
-from SBaaS_models.models_MFA_execute import models_MFA_execute
-exMFA01 = models_MFA_execute(session,engine,pg_settings.datadir_settings);
-##export the mode
-#ko_list = ['F6PA','F6PA_reverse','DHAPT','GLYCDx','DHAPT',
-#           'EX_acald_LPAREN_e_RPAREN_',
-#           'EX_etoh_LPAREN_e_RPAREN_',
-#           'EX_glyc_LPAREN_e_RPAREN_',
-#           'EX_glyclt_LPAREN_e_RPAREN_',
-#           'EX_lac_DASH_D_LPAREN_e_RPAREN_',
-#           'EX_pyr_LPAREN_e_RPAREN_',
-#          'EX_succ_LPAREN_e_RPAREN_']
-#exMFA01.export_model('150526_iDM2015',filename_I='150526_iDM2015.json',filetype_I='json',ko_list=ko_list)
-
-#make the COBRA table
-from SBaaS_models.models_COBRA_execute import models_COBRA_execute
-exCOBRA01 = models_COBRA_execute(session,engine,pg_settings.datadir_settings);
-##exCOBRA01.drop_models_COBRA();
-#exCOBRA01.initialize_models_COBRA();
-#exCOBRA01.make_modelFromRxnsAndMetsTables();
-#exCOBRA01.reset_models_COBRA('ALEsKOs01_evo04tpiA_11');
-#TODO: exCOBRA01.import_COBRA_add('data/tests/analysis_models/.csv');
-
-#rows = exCOBRA01.getGroup_subsystemsAndGenesAndCount_modelID_dataStage02PhysiologyModelReactions('iJO1366');
-#rows = exCOBRA01.getGroup_subsystemsAndRxnIDAndCount_modelID_dataStage02PhysiologyModelReactions('iJO1366');
-rows = exCOBRA01.getGroup_subsystemsAndMetIDAndCount_modelID_dataStage02PhysiologyModelReactions(
-    'iJO1366',
-    deformat_metID_I=True);
-
-##make the MASS table
-#from SBaaS_models.models_MASS_execute import models_MASS_execute
-#exMASS01 = models_MASS_execute(session,engine,pg_settings.datadir_settings);
-#exMASS01.drop_models_MASS();
-#exMASS01.initialize_models_MASS();
-#exMASS01.reset_models_MASS('ALEsKOs01_evo04tpiA_11');
-##TODO: exMASS01.import_MASS_add('data/tests/analysis_models/.csv');
+#make the BioCyc table
+from SBaaS_models.models_BioCyc_execute import models_BioCyc_execute
+biocyc01 = models_BioCyc_execute(session,engine,pg_settings.datadir_settings);
+biocyc01.initialize_supportedTables()
+biocyc01.initialize_tables()
