@@ -23,6 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="main.py" />
+    <Compile Include="models_BioCyc_dependencies.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="models_BioCyc_execute.py" />
     <Compile Include="models_BioCyc_io.py" />
     <Compile Include="models_BioCyc_postgresql_models.py" />

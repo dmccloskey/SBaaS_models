@@ -32,3 +32,8 @@ from SBaaS_models.models_BioCyc_execute import models_BioCyc_execute
 biocyc01 = models_BioCyc_execute(session,engine,pg_settings.datadir_settings);
 biocyc01.initialize_supportedTables()
 biocyc01.initialize_tables()
+
+#genes tested: 'tpiA','gloA','nrdA','mgsA'   'pfkA'
+biocyc01.export_geneRegulators_js('soxR','ECOLI');
+biocyc01.export_geneRegulatedEntities_js('soxR','ECOLI');
+#TODO: biocyc01.export_geneProteinFeatures_js('soxR','ECOLI');
