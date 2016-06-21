@@ -34,6 +34,20 @@ biocyc01.initialize_supportedTables()
 biocyc01.initialize_tables()
 
 #genes tested: 'tpiA','gloA','nrdA','mgsA'   'pfkA'
-biocyc01.export_geneRegulators_js('soxR','ECOLI');
-biocyc01.export_geneRegulatedEntities_js('soxR','ECOLI');
-#TODO: biocyc01.export_geneProteinFeatures_js('soxR','ECOLI');
+#biocyc01.export_geneRegulators_js('icd','ECOLI');
+#biocyc01.export_geneReactions_js('icd','ECOLI');
+biocyc01.export_geneEnzymaticReactions_js('icd','ECOLI');
+#biocyc01.export_geneRegulators_js('fli%','ECOLI');
+#biocyc01.export_geneRegulatedEntities_js('spf','ECOLI');
+#biocyc01.export_geneProteinFeatures_js('icd','ECOLI');
+
+#stringList_I = 'gadA,gadX,gadB,gadC'
+#str_list = stringList_I.split(',');
+#biocyc01.export_geneParentClasses_js(str_list,'ECOLI');
+
+#stringList_I = 'bglG,bglGFB,leuO,molR_1,sfsB,yecT,ygiZ,yidL,ykiA,ynbABCD,ynjI,yqhG,adiC,aslB,cadBA,gadAX,slp-dctR,yhiM,csgDEFG,flhDC,rcsA,wza-wzb-wzc-wcaAB,yjbE,yjbEFGH'
+#str_list = stringList_I.split(',');
+#biocyc01.export_transcriptionUnitParentClassesHistogram_js(str_list,'ECOLI',single_plot_I=True);
+
+#biocyc01.export_GOTermGenes_js('GO:0046034','ECOLI');
+
