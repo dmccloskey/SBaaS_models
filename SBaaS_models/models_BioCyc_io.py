@@ -142,7 +142,9 @@ class models_BioCyc_io(models_BioCyc_query,
                 data_table_keymap=None,
                 data_svg=None,
                 data_table=None,
-                svgtype='treelayout2d_01',
+                svgtype='indentedtreelayout2d_01',
+                #svgtype='radialtreelayout2d_01',
+                #svgtype='treelayout2d_01',
                 #svgtype='forcelayout2d_01',
                 tabletype='responsivetable_01',
                 svgx1axislabel='',
@@ -162,6 +164,7 @@ class models_BioCyc_io(models_BioCyc_query,
                             "svgwidth":500,
                             "svgheight":500,
                             "svgduration":750,
+                            "svgradius":250,
                             "datalastchild":'transcription_unit',
                             'colclass':"col-sm-12"
                             }
@@ -406,8 +409,6 @@ class models_BioCyc_io(models_BioCyc_query,
             return data_json_O;
         with open(filename_str,'w') as file:
             file.write(nsvgtable.get_allObjects());
-
-
     def export_GOTermGenes_js(self,go_term_I,database_I='ECOLI',query_I={},data_dir_I='tmp'):
         '''Export force diagram of GO Terms (MF only) to genes
         INPUT:
@@ -558,7 +559,6 @@ class models_BioCyc_io(models_BioCyc_query,
             return data_json_O;
         with open(filename_str,'w') as file:
             file.write(nsvgtable.get_allObjects());
-
     def export_transcriptionUnitParentClassesHistogram_js(self,
         tus_I,database_I='ECOLI',query_I={},n_bins_I=[],single_plot_I=False,data_dir_I="tmp"):
         '''
@@ -735,3 +735,158 @@ class models_BioCyc_io(models_BioCyc_query,
             return data_json_O;
         with open(filename_str,'w') as file:
             file.write(ddtutilities.get_allObjects());
+            
+    def export_geneRegulatedEntities_chordDiagram_js(self,
+                genes_I,database_I='ECOLI',
+                query_I={},
+                data_dir_I='tmp'
+                ):
+        '''export a chord diagram
+        INPUT:
+
+        query_I = {} of additional SQL query operators
+        data_dir_I
+        OUTPUT:
+        '''
+
+        #get the data
+        data_O = [];
+        for gene in genes_I:
+            data_tmp = self.getJoin_regulatedEntities_geneAndDatabase_modelsBioCycProteinAndRegulationAndPolymerSegment(
+                gene,database_I=database_I,
+                query_I=query_I,
+                output_O='listDict',
+                dictColumn_I=None);
+            data_O.extend(data_tmp);
+
+        #group regulators and regulated TUs
+        regulator_tu = [];
+        regulator = {};
+        transcription_unit = {};
+        parent_classes = {};
+        regulator_cnt=1
+        transcription_unit_cnt=1
+        parent_classes_cnt=1
+        for d in data_O:
+            reg_tu_dict = {};
+            reg_tu_dict['gene'] = d['gene']
+            # convert regulator to float
+            if not d['regulator'] in regulator.keys():
+                regulator[d['regulator']] = regulator_cnt;
+                regulator_cnt+=1;
+            reg_tu_dict['regulator'] = d['regulator']
+            reg_tu_dict['regulator_'] = regulator[d['regulator']];
+            # convert transcription unit to float
+            if not d['transcription_unit'] in transcription_unit.keys():
+                transcription_unit[d['transcription_unit']] = transcription_unit_cnt;
+                transcription_unit_cnt+=1;
+            reg_tu_dict['transcription_unit'] = d['transcription_unit']
+            reg_tu_dict['transcription_unit_'] = transcription_unit[d['transcription_unit']];
+            # convert mode to float
+            if d['mode'] == '+': mode = 1
+            elif d['mode'] == '-': mode = -1
+            reg_tu_dict['mode'] = d['mode'];
+            reg_tu_dict['mode_'] = mode;
+            # convert parent class to float
+            if not d['parent_classes'] in parent_classes.keys():
+                parent_classes[d['parent_classes']] = parent_classes_cnt;
+                parent_classes_cnt+=1;
+            reg_tu_dict['parent_classes'] = d['parent_classes'];
+            reg_tu_dict['parent_classes_'] = parent_classes[d['parent_classes']];
+            # make interaction float
+            interaction = parent_classes[d['parent_classes']]*mode;
+            reg_tu_dict['interaction'] = interaction;
+            if not reg_tu_dict in regulator_tu:
+                regulator_tu.append(reg_tu_dict);
+
+        #data1 = filter menu and table
+        data1_keys = [
+                    'gene',
+                    'regulator',
+                    'transcription_unit',
+                    'parent_classes',
+                    'mode',
+                    ];
+        data1_nestkeys = [
+                    'regulator',
+                    #'transcription_unit',
+            #'regulator',
+            #'transcription_unit',
+            #'parent_classes',
+            #'mode',
+            ];
+        data1_keymap = {
+            'xdata':'',
+            'ydata':'',
+            'zdata':'',
+            'rowslabel':'',
+            'columnslabel':'',
+            'tooltipdata':'',};
+         
+        #data2 = svg
+        #if single plot, data2 = filter menu, data2, and table
+        data2_keys = [
+                    'regulator',
+                    'transcription_unit',
+                    ];
+        data2_nestkeys = [
+            'regulator',];
+        data2_keymap = {
+            'xdata':'mode_',
+            'ydata':'mode_',
+            #'xdata':'regulator_',
+            #'ydata':'transcription_unit_',
+            'xdatalabel':'regulator',
+            'ydatalabel':'transcription_unit',
+            'serieslabel':'regulator',
+            'featureslabel':'transcription_unit',
+            #'tooltiplabel':'component_name',
+            };
+
+        svgparameters = {
+            'svgradius':250,
+            'svgouterradius':200,
+            'svginnerradius':190,
+            "svgwidth":500,
+            "svgheight":500,
+            "datalastchild":'transcription_unit',
+            };
+        
+        nsvgtable = ddt_container_filterMenuAndChart2dAndTable();
+        nsvgtable.make_filterMenuAndChart2dAndTable(
+            data_filtermenu=regulator_tu,
+            data_filtermenu_keys=data1_keys,
+            data_filtermenu_nestkeys=data1_nestkeys,
+            data_filtermenu_keymap=data1_keymap,
+            data_svg_keys=None,
+            data_svg_nestkeys=None,
+            data_svg_keymap=data2_keymap,
+            data_table_keys=None,
+            data_table_nestkeys=None,
+            data_table_keymap=None,
+            data_svg=None,
+            data_table=None,
+            #svgtype='chorddiagram2d_01',
+            svgtype='bundlediagram2d_01',
+            tabletype='responsivetable_01',
+            svgx1axislabel='',
+            svgy1axislabel='',
+            tablekeymap = [data1_keymap],
+            svgkeymap = [data2_keymap],
+            formtile2datamap=[0],
+            tabletile2datamap=[0],
+            svgtile2datamap=[0], #calculated on the fly
+            svgfilters=None,
+            svgtileheader='chord diagram',
+            svgparameters_I=svgparameters,
+            tablefilters=None,
+            tableheaders=None
+            );
+
+        if data_dir_I=='tmp':
+            filename_str = self.settings['visualization_data'] + '/tmp/ddt_data.js'
+        elif data_dir_I=='data_json':
+            data_json_O = nsvgtable.get_allObjects_js();
+            return data_json_O;
+        with open(filename_str,'w') as file:
+            file.write(nsvgtable.get_allObjects());

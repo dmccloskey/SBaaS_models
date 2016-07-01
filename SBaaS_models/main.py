@@ -36,10 +36,13 @@ biocyc01.initialize_tables()
 #genes tested: 'tpiA','gloA','nrdA','mgsA'   'pfkA'
 #biocyc01.export_geneRegulators_js('icd','ECOLI');
 #biocyc01.export_geneReactions_js('icd','ECOLI');
-biocyc01.export_geneEnzymaticReactions_js('icd','ECOLI');
+#biocyc01.export_geneEnzymaticReactions_js('icd','ECOLI');
 #biocyc01.export_geneRegulators_js('fli%','ECOLI');
-#biocyc01.export_geneRegulatedEntities_js('spf','ECOLI');
-#biocyc01.export_geneProteinFeatures_js('icd','ECOLI');
+biocyc01.export_geneRegulatedEntities_js('spf','ECOLI');
+#biocyc01.export_geneProteinFeatures_js('zwf','ECOLI');
+
+#biocyc01.export_geneRegulatedEntities_chordDiagram_js(['soxR','soxS','oxyR','oxyS'],'ECOLI');
+#biocyc01.export_geneRegulatedEntities_chordDiagram_js(['soxR','soxS'],'ECOLI');
 
 #stringList_I = 'gadA,gadX,gadB,gadC'
 #str_list = stringList_I.split(',');

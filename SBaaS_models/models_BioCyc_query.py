@@ -1689,7 +1689,7 @@ class models_BioCyc_query(sbaas_template_query):
         for row in biocyc_proteins:
             tmp = {};
             tmp['gene'] = dependencies.convert_bioCycList2List(row['gene'])[0];
-            tmp['protein_name'] =  row['name']; #required for proteinFeatures
+            tmp['protein_name'] = row['name']; #required for proteinFeatures
             tmp['locations'] = row['locations'];
             tmp['molecular_weight_kd'] = row['molecular_weight_kd'];
             #parse features
@@ -1704,7 +1704,7 @@ class models_BioCyc_query(sbaas_template_query):
                     tmp1['component_of'] = component;
                     biocyc_proteins_parsed.append(tmp1)
             else:
-                tmp['component_of'] = '%'; 
+                tmp['component_of'] = None; 
                 biocyc_proteins_parsed.append(tmp)
 
         biocyc_features = [];
@@ -1714,10 +1714,11 @@ class models_BioCyc_query(sbaas_template_query):
             if row['features'][0]:
                 for feature in row['features']:
                     tmp1 = [];
-                    tmp1 = self.get_rows_nameAndFeatureOfAndDatabase_modelsBioCycProteinFeatures(
-                        feature,row['component_of'],database_I=database_I,
-                        query_I=query_I,
-                        );   
+                    if not row['component_of'] is None:
+                        tmp1 = self.get_rows_nameAndFeatureOfAndDatabase_modelsBioCycProteinFeatures(
+                            feature,row['component_of'],database_I=database_I,
+                            query_I=query_I,
+                            );   
                     tmp2 = [];
                     tmp2 = self.get_rows_nameAndFeatureOfAndDatabase_modelsBioCycProteinFeatures(
                         feature,row['protein_name'],database_I=database_I,
