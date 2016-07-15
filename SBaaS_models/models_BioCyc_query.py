@@ -1237,34 +1237,11 @@ class models_BioCyc_query(sbaas_template_query):
          WHERE models_biocyc_protein.gene LIKE '''
 
         dependencies = models_BioCyc_dependencies();
-        
-        biocyc_proteins = self.get_geneAndRegulatesAndNameAndComponentOf_geneAndDatabase_modelsBioCycProteins(
+
+        biocyc_proteins_parsed = self.getParsed_geneAndRegulatesAndNameAndComponentOf_geneAndDatabase_modelsBioCycProteins(
             gene_I,database_I=database_I,
             query_I=query_I,
             );
-        biocyc_proteins_parsed = [];
-        for row in biocyc_proteins:
-            tmp = {};
-            tmp['gene'] = dependencies.convert_bioCycList2List(row['gene'])[0];
-            tmp['regulates'] = list(set(dependencies.convert_bioCycList2List(row['regulates'])));
-            tmp['protein_name'] =  row['name']; #required for proteinFeatures
-            #tmp['component_of'] = dependencies.convert_bioCycList2List(row['component_of']);
-            components_of = dependencies.convert_bioCycList2List(row['component_of']);
-            # check for protein-ligands
-            for component_of in components_of[:]:
-                tmp1 = [];
-                tmp1 = self.get_rows_leftAndParentClassesAndDatabase_modelsBioCycReactions(
-                    component_of,
-                    parentClasses_I = '("Protein-Ligand-Binding-Reactions")',
-                    database_I='ECOLI',
-                    query_I={},
-                    output_O='listDict',
-                    dictColumn_I=None);
-                for t1 in tmp1:
-                    right = dependencies.convert_bioCycList2List(t1['right']);
-                    components_of.extend(right);
-            tmp['component_of'] = components_of;
-            biocyc_proteins_parsed.append(tmp)
 
         if not biocyc_proteins_parsed:
             tmp = {};
@@ -1386,32 +1363,10 @@ class models_BioCyc_query(sbaas_template_query):
         dependencies = models_BioCyc_dependencies();
 
         # get the protein regulators
-        biocyc_proteins = self.get_geneAndRegulatesAndNameAndComponentOf_geneAndDatabase_modelsBioCycProteins(
+        biocyc_proteins_parsed = self.getParsed_geneAndRegulatesAndNameAndComponentOf_geneAndDatabase_modelsBioCycProteins(
             gene_I,database_I=database_I,
             query_I=query_I,
             );
-        biocyc_proteins_parsed = [];
-        for row in biocyc_proteins:
-            tmp = {};
-            tmp['gene'] = dependencies.convert_bioCycList2List(row['gene'])[0];
-            tmp['regulates'] = list(set(dependencies.convert_bioCycList2List(row['regulates'])));
-            tmp['protein_name'] =  row['name']; #required for proteinFeatures
-            components_of = dependencies.convert_bioCycList2List(row['component_of']);
-            # check for protein-ligands
-            for component_of in components_of[:]:
-                tmp1 = [];
-                tmp1 = self.get_rows_leftAndParentClassesAndDatabase_modelsBioCycReactions(
-                    component_of,
-                    parentClasses_I = '("Protein-Ligand-Binding-Reactions")',
-                    database_I='ECOLI',
-                    query_I={},
-                    output_O='listDict',
-                    dictColumn_I=None);
-                for t1 in tmp1:
-                    right = dependencies.convert_bioCycList2List(t1['right']);
-                    components_of.extend(right);
-            tmp['component_of'] = components_of;
-            biocyc_proteins_parsed.append(tmp)
 
         # get the polymer regulators
         biocyc_polymerSegments = self.get_nameAndProductsAndParentClasses_nameAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
@@ -1467,16 +1422,6 @@ class models_BioCyc_query(sbaas_template_query):
                 regulator['parent_classes']=parent_classes[0];
                 #regulator['regulator']=None;
                 biocyc_regulation.append(regulator);
-            #if not regulators_polymerase: #ensure there is an entry for TUs without a regulator
-            #    tmp = {};
-            #    tmp['gene']=row['gene'];
-            #    tmp['protein_name']=row['protein_name'];
-            #    tmp['transcription_unit']=row['transcription_unit'];
-            #    tmp['regulated_entity']=row['component'];
-            #    tmp['mode']='0';
-            #    tmp['parent_classes']='No regulation';
-            #    tmp['regulator']='No regulator';
-            #    biocyc_regulation.append(tmp);
 
         biocyc_polymerSegments=[];
         for row in biocyc_regulation:
@@ -1490,19 +1435,6 @@ class models_BioCyc_query(sbaas_template_query):
             for tu in transcription_units:
                 tmp = copy.copy(row);
                 tmp['transcription_unit']=tu['name'];
-                #tu['component']=dependencies.extract_regulatedEntityFromComponents(
-                #    tu['components']);
-                ##parse through the regulated components
-                #regulated_by = [];
-                #regulated_by = dependencies.convert_bioCycList2List(
-                #    tu['regulated_by']);
-                #if regulated_by[0]:
-                #    for regulated in regulated_by:
-                #        tu['regulated_by']=regulated
-                #        biocyc_polymerSegments.append(tu);
-                #else: 
-                #    tu['regulated_by']="No regulators"
-                #    biocyc_polymerSegments.append(tu);
                 biocyc_polymerSegments.append(tmp);
 
         #TODO: recursively pull out all of the regulator components
@@ -1857,6 +1789,98 @@ class models_BioCyc_query(sbaas_template_query):
                 biocyc_polymerSegments_parsed.append(tmp);
 
         return biocyc_polymerSegments_parsed;
+
+    def getParsed_geneAndRegulatesAndNameAndComponentOf_geneAndDatabase_modelsBioCycProteins(
+        self,gene_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''
+        '''
+        dependencies = models_BioCyc_dependencies();
+        # get the protein regulators
+        biocyc_proteins = self.get_geneAndRegulatesAndNameAndComponentOf_geneAndDatabase_modelsBioCycProteins(
+            gene_I,database_I=database_I,
+            query_I=query_I,
+            );
+        biocyc_proteins_parsed = [];
+        for row in biocyc_proteins:
+            tmp = {};
+            tmp['gene'] = dependencies.convert_bioCycList2List(row['gene'])[0];
+            tmp['regulates'] = list(set(dependencies.convert_bioCycList2List(row['regulates'])));
+            tmp['protein_name'] =  row['name']; #required for proteinFeatures
+            components_of = dependencies.convert_bioCycList2List(row['component_of']);
+            # check for protein-ligands
+            for component_of in components_of[:]:
+                tmp1 = [];
+                tmp1 = self.get_rows_leftAndParentClassesAndDatabase_modelsBioCycReactions(
+                    component_of,
+                    parentClasses_I = '("Protein-Ligand-Binding-Reactions")',
+                    database_I='ECOLI',
+                    query_I={},
+                    output_O='listDict',
+                    dictColumn_I=None);
+                for t1 in tmp1:
+                    right = dependencies.convert_bioCycList2List(t1['right']);
+                    components_of.extend(right);
+            tmp['component_of'] = components_of;
+            biocyc_proteins_parsed.append(tmp)
+        return biocyc_proteins_parsed;
+
+    def getParsed_geneAndRows_metaboliteAndDatabase_modelsBioCycRegulation(
+        self,metabolite_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_proteinFeatures
+        WHERE feature_of LIKE '''
+
+        dependencies = models_BioCyc_dependencies();
+
+        # format the metabolite regulators
+        biocyc_metabolites_parsed = [];
+        tmp = {};
+        tmp['gene']=None;
+        tmp['regulator']=metabolite_I;
+        biocyc_metabolites_parsed.append(tmp)
+
+        biocyc_regulation = [];
+        for row in biocyc_metabolites_parsed:
+            #regulated_entities of the protein/RNA
+            regulated_entities=[];
+            regulated_entities = self.get_rows_regulatorAndDatabase_modelsBioCycRegulation(
+                row['regulator'],database_I=database_I,
+                query_I=query_I,
+                );      
+
+            #if regulated_entities:
+            for regulator in regulated_entities:
+                regulator['gene']=row['gene'];
+                modes = dependencies.convert_bioCycList2List(regulator['mode'])
+                if len(modes)>1: print('more than one mode of regulation found');
+                regulator['mode']=modes[0];
+                parent_classes = dependencies.convert_bioCycList2List(regulator['parent_classes']);
+                if len(parent_classes)>1: print('more than one parent_classes found');
+                regulator['parent_classes']=parent_classes[0];
+                biocyc_regulation.append(regulator);
+
+        biocyc_polymerSegments=[];
+        for row in biocyc_regulation:
+            #TODO: add a check ensure that the component does not pull out the same gene
+            transcription_units = self.get_nameAndComponentsAndRegulatedBy_componentsAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
+                row['regulated_entity'],
+                parentClasses_I = '("Transcription-Units")',
+                database_I=database_I,
+                query_I=query_I,
+                );
+            for tu in transcription_units:
+                tmp = copy.copy(row);
+                tmp['transcription_unit']=tu['name'];
+                biocyc_polymerSegments.append(tmp);
+
+        #TODO: recursively pull out all of the regulator components
+
+        return biocyc_polymerSegments
 
     #Complex queries
     def getComplex_transcriptionUnitParentClasses(self,tus_I,database_I='ECOLI',query_I={}):
