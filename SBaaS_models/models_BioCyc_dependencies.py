@@ -3,6 +3,21 @@ from molmass.molmass import Formula
 # System dependencies
 import re
 class models_BioCyc_dependencies():
+    def convert_bioCycRxn2LeftAndRight(self,rxn_str_I):
+        '''Convert biocyc reaction string to left and right components
+        
+        INPUT:
+        rxn_str_I = string
+        OUTPUT:
+        left_O = list of strings
+        right_O = list of strings'''
+
+        #break into left/right
+        rxn_lst = rxn_str_I.split('  &rarr;  ');
+        left = rxn_lst[0].split(' + ');
+        right = rxn_lst[1].split(' + ');
+        return left,right;
+
     def convert_bioCycList2List(self,list_I):
         '''Convert biocyc string list to list
         INPUT:

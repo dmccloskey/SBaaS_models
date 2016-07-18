@@ -369,7 +369,7 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
-    def get_rows_geneAndDatabase_modelsBioCycRegulation(
+    def get_rows_nameAndDatabase_modelsBioCycRegulation(
         self,name_I,database_I='ECOLI',
         query_I={},
         output_O='listDict',
@@ -1387,7 +1387,7 @@ class models_BioCyc_query(sbaas_template_query):
             if 'regulates' in row.keys() and row['regulates'][0]:
                 for name in row['regulates']:
                     tmp = [];
-                    tmp = self.get_rows_geneAndDatabase_modelsBioCycRegulation(
+                    tmp = self.get_rows_nameAndDatabase_modelsBioCycRegulation(
                         name,database_I=database_I,
                         query_I=query_I,
                         );      
@@ -1596,6 +1596,62 @@ class models_BioCyc_query(sbaas_template_query):
         #(NOTE: only works because each dictionary is constructed identically)
         data_O = [];
         for row in biocyc_reactions:
+            if not row in data_O:
+                data_O.append(row);
+
+        return data_O;
+
+    def getJoin_enzymaticReactions_geneAndDatabase_modelsBioCycProteinAndPolymerSegmentAndEnzymaticReactionsAndRegulation(
+        self,gene_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''
+        '''
+        
+        data_O = [];
+        dependencies = models_BioCyc_dependencies();
+
+        enzymatic_reactions = self.getJoin_enzymaticReactions_geneAndDatabase_modelsBioCycProteinAndPolymerSegmentAndEnzymaticReactions(
+            gene_I,database_I=database_I,
+            query_I=query_I,
+            output_O='listDict',
+            dictColumn_I=None);
+
+        if not enzymatic_reactions: return data_O;
+
+        biocyc_regulation = [];
+        for row in enzymatic_reactions:
+            #regulated_entities of the protein/RNA
+            regulated_entities=[];
+            regulated_by = dependencies.convert_bioCycList2List(row['regulated_by']);
+            if regulated_by and regulated_by[0]:
+                for regulated in regulated_by:
+                    tmp = self.get_rows_nameAndDatabase_modelsBioCycRegulation(
+                        regulated,database_I=database_I,
+                        query_I=query_I,
+                        );      
+                    regulated_entities.extend(tmp);
+
+            if regulated_entities:
+                for regulator in regulated_entities:
+                    modes = dependencies.convert_bioCycList2List(regulator['mode'])
+                    if len(modes)>1: print('more than one mode of regulation found');
+                    regulator['mode']=modes[0];
+                    parent_classes = dependencies.convert_bioCycList2List(regulator['parent_classes']);
+                    if len(parent_classes)>1: print('more than one parent_classes found');
+                    regulator['regulation_parent_classes']=parent_classes[0];
+                    regulator.update(row);
+                    biocyc_regulation.append(regulator);
+            else:
+                row['mode']='none'
+                row['regulation_parent_classes']='none'
+                row['regulator']='none'
+                biocyc_regulation.append(row);
+
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        for row in biocyc_regulation:
             if not row in data_O:
                 data_O.append(row);
 

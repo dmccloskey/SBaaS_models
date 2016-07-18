@@ -49,7 +49,10 @@ biocyc01.initialize_tables()
 #    genes_I=['soxR','soxS','oxyR','oxyS','marA','rob'],
 #    database_I = 'ECOLI');
 
-biocyc01.export_geneReactions_forceDirectedGraph_js(
+#biocyc01.export_geneReactions_forceDirectedGraph_js(
+#    genes_I=['glnL','glnG','glnB','glnD','glnE','glnK','glnA'],
+#    database_I = 'ECOLI');
+biocyc01.export_geneReactionsAndEnzymaticReactions_forceDirectedGraph_js(
     genes_I=['glnL','glnG','glnB','glnD','glnE','glnK','glnA'],
     database_I = 'ECOLI');
 

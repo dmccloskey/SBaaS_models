@@ -8,6 +8,7 @@ from io_utilities.base_exportData import base_exportData
 from ddt_python.ddt_container import ddt_container
 from ddt_python.ddt_container_filterMenuAndChart2dAndTable import ddt_container_filterMenuAndChart2dAndTable
 from listDict.listDict import listDict
+import copy
 
 class models_BioCyc_io(models_BioCyc_query,
                     sbaas_template_io):
@@ -853,7 +854,7 @@ class models_BioCyc_io(models_BioCyc_query,
             #'xdata':'regulator_',
             #'ydata':'transcription_unit_',
             'xdatalabel':'regulator',
-            'ydatalabel':'transcription_unit',
+            'ydatalabel':'regulator',
             'serieslabel':'regulator',
             'featureslabel':'transcription_unit',
             #'tooltiplabel':'component_name',
@@ -1011,7 +1012,7 @@ class models_BioCyc_io(models_BioCyc_query,
             #'xdata':'regulator_',
             #'ydata':'transcription_unit_',
             'xdatalabel':'regulator',
-            'ydatalabel':'transcription_unit',
+            'ydatalabel':'regulator',
             'serieslabel':'regulator',
             'featureslabel':'transcription_unit',
             #'tooltiplabel':'component_name',
@@ -1076,6 +1077,8 @@ class models_BioCyc_io(models_BioCyc_query,
         OUTPUT:
         '''
         
+        dependencies = models_BioCyc_dependencies();
+
         data_O = [];
         # get data
         for gene in genes_I:
@@ -1085,6 +1088,24 @@ class models_BioCyc_io(models_BioCyc_query,
                 output_O='listDict',
                 dictColumn_I=None);
             data_O.extend(data_tmp);
+
+        # break into individual reactions
+        data_reactions = [];
+        for d in data_O:
+            d['flux']=1;
+            left = dependencies.convert_bioCycList2List(d['left']);
+            right = dependencies.convert_bioCycList2List(d['right']);
+            reaction = d['gene'];
+            for l in left:
+                tmp = copy.copy(d);
+                tmp['left'] = l;
+                tmp['right'] = reaction;
+                data_reactions.append(tmp);
+            for r in right:
+                tmp = copy.copy(d);
+                tmp['left'] = reaction;
+                tmp['right'] = r;
+                data_reactions.append(tmp);
 
         # make the data parameters
         data1_keys = [
@@ -1097,7 +1118,7 @@ class models_BioCyc_io(models_BioCyc_query,
                     ];
         data1_nestkeys = [
             'left',
-            'parent_classes',
+            #'name',
             'right',
                           ];
         data1_keymap = {'xdata':'parent_classes',
@@ -1106,12 +1127,10 @@ class models_BioCyc_io(models_BioCyc_query,
                         'featureslabel':''};
 
         data2_keymap = {
-            'xdata':'mode_',
-            'ydata':'mode_',
-            #'xdata':'regulator_',
-            #'ydata':'transcription_unit_',
-            'xdatalabel':'regulator',
-            'ydatalabel':'transcription_unit',
+            'xdata':'parent_classes',
+            'ydata':'flux',
+            'xdatalabel':'parent_classes',
+            'ydatalabel':'name',
             'serieslabel':'regulator',
             'featureslabel':'transcription_unit',
             #'tooltiplabel':'component_name',
@@ -1125,30 +1144,200 @@ class models_BioCyc_io(models_BioCyc_query,
             'colclass':"col-sm-12",
             'svgcolorcategory':'blue2red64',
             'svgcolordomain':'min,max',
-			'svgcolordatalabel':'mode_',
+			'svgcolordatalabel':'parent_classes',
             'svgcolorscale':'quantile',
             };
         
         nsvgtable = ddt_container_filterMenuAndChart2dAndTable();
         nsvgtable.make_filterMenuAndChart2dAndTable(
-            data_filtermenu=data_O,
+            data_filtermenu=data_reactions,
             data_filtermenu_keys=data1_keys,
             data_filtermenu_nestkeys=data1_nestkeys,
             data_filtermenu_keymap=data1_keymap,
             data_svg_keys=None,
             data_svg_nestkeys=None,
-            data_svg_keymap=None,
+            data_svg_keymap=data2_keymap,
             data_table_keys=None,
             data_table_nestkeys=None,
             data_table_keymap=None,
             data_svg=None,
             data_table=None,
+            #svgtype='sankeydiagram2d_01',
             svgtype='forcedirectedgraph2d_01',
             tabletype='responsivetable_01',
             svgx1axislabel='',
             svgy1axislabel='',
             tablekeymap = [data1_keymap],
-            svgkeymap = [data1_keymap],
+            svgkeymap = [data2_keymap],
+            formtile2datamap=[0],
+            tabletile2datamap=[0],
+            svgtile2datamap=[0],
+            svgfilters=None,
+            svgtileheader='BioCyc Reaction',
+            tablefilters=None,
+            tableheaders=None,
+            svgparameters_I= svgparameters,
+            );
+
+        if data_dir_I=='tmp':
+            filename_str = self.settings['visualization_data'] + '/tmp/ddt_data.js'
+        elif data_dir_I=='data_json':
+            data_json_O = nsvgtable.get_allObjects_js();
+            return data_json_O;
+        with open(filename_str,'w') as file:
+            file.write(nsvgtable.get_allObjects());
+    def export_geneReactionsAndEnzymaticReactions_forceDirectedGraph_js(self,genes_I,database_I='ECOLI',query_I={},data_dir_I='tmp'):
+        '''Export force diagram
+        INPUT:
+        OUTPUT:
+        '''
+        
+        dependencies = models_BioCyc_dependencies();
+
+        data1_O = [];
+        data2_O = [];
+        # get data
+        for gene in genes_I:
+            data_tmp = self.getJoin_enzymaticReactions_geneAndDatabase_modelsBioCycProteinAndPolymerSegmentAndEnzymaticReactionsAndRegulation(
+                gene,database_I=database_I,
+                query_I=query_I,
+                output_O='listDict',
+                dictColumn_I=None);
+            data1_O.extend(data_tmp);
+            data_tmp = self.getJoin_reactions_geneAndDatabase_modelsBioCycProteinAndPolymerSegmentAndReaction(
+                gene,database_I=database_I,
+                query_I=query_I,
+                output_O='listDict',
+                dictColumn_I=None);
+            data2_O.extend(data_tmp);
+
+        # break into individual reactions
+        data_reactions = [];
+        for d in data1_O:
+            d['flux']=1;
+            #d['mode_']={'+':2,'-':3,'':1}[d['mode']];
+            d['marker']=1;
+            reaction = d['name'];
+            rxn_lst = dependencies.convert_bioCycList2List(d['reaction']);
+            cofactors = dependencies.convert_bioCycList2List(d['cofactors']);
+            if len(rxn_lst)>1: print('more than one reaction found');
+            for rxn in rxn_lst:
+                left,right = dependencies.convert_bioCycRxn2LeftAndRight(rxn);
+                # correct left/right based on reaction direction
+                if not 'LEFT-TO-RIGHT' in d['reaction_direction']:
+                    right,left=left,right;
+                for l in left:
+                    tmp = copy.copy(d);
+                    tmp['left'] = l;
+                    tmp['right'] = reaction;
+                    tmp['mode']='none'
+                    data_reactions.append(tmp);
+                for r in right:
+                    tmp = copy.copy(d);
+                    tmp['left'] = reaction;
+                    tmp['right'] = r;
+                    tmp['mode']='none'
+                    data_reactions.append(tmp);  
+                # add in pseudo reaction for regulators              
+                if d['regulator']:
+                    tmp = copy.copy(d);
+                    tmp['left'] = d['regulator'];
+                    tmp['right'] = reaction;
+                    data_reactions.append(tmp);
+                # add in pseudo reaction and mode for cofactors
+                for cofactor in cofactors:
+                    tmp = copy.copy(d);
+                    tmp['left'] = cofactor;
+                    tmp['right'] = reaction;
+                    tmp['mode'] = 'cofactor';
+                    data_reactions.append(tmp);
+        for d in data2_O:
+            d['flux']=1;
+            d['marker']=1;
+            left = dependencies.convert_bioCycList2List(d['left']);
+            right = dependencies.convert_bioCycList2List(d['right']);
+            reaction = d['gene'];
+            d['reaction'] = d['name'];
+            d['name'] = d['frame_id'];
+            d['enzyme'] = d['ec_number'];
+            for l in left:
+                tmp = copy.copy(d);
+                tmp['left'] = l;
+                tmp['right'] = reaction;
+                tmp['mode']='none'
+                data_reactions.append(tmp);
+            for r in right:
+                tmp = copy.copy(d);
+                tmp['left'] = reaction;
+                tmp['right'] = r;
+                tmp['mode']='none'
+                data_reactions.append(tmp);
+
+        # make the data parameters
+        data1_keys = [
+                    'gene',
+                    'parent_classes',
+                    'left',
+                    'right',
+                    'enzyme',
+                    'name',
+                    'mode'
+                    ];
+        data1_nestkeys = [
+            'left',
+            #'name',
+            'right',
+                          ];
+        data1_keymap = {'xdata':'parent_classes',
+                        'ydata':'mode',
+                        'serieslabel':'mode',
+                        'featureslabel':''};
+
+        data2_keymap = {
+            'xdata':'parent_classes',
+            'ydata':'flux',
+            'zdata':'marker',
+            'xdatalabel':'parent_classes',
+            'ydatalabel':'mode',
+            'zdatalabel':'marker',
+            'serieslabel':'regulator',
+            'featureslabel':'transcription_unit',
+            #'tooltiplabel':'component_name',
+            };
+
+        svgparameters = {
+            "svgmargin":{ 'top': 100, 'right': 100, 'bottom': 100, 'left': 100 },
+            "svgwidth":500,
+            "svgheight":500,
+            "svgduration":750,
+            'colclass':"col-sm-12",
+   #         'svgcolorcategory':'blue2red64',
+   #         'svgcolordomain':'min,max',
+   #		 'svgcolordatalabel':'parent_classes',
+   #         'svgcolorscale':'quantile',
+            };
+        
+        nsvgtable = ddt_container_filterMenuAndChart2dAndTable();
+        nsvgtable.make_filterMenuAndChart2dAndTable(
+            data_filtermenu=data_reactions,
+            data_filtermenu_keys=data1_keys,
+            data_filtermenu_nestkeys=data1_nestkeys,
+            data_filtermenu_keymap=data1_keymap,
+            data_svg_keys=None,
+            data_svg_nestkeys=None,
+            data_svg_keymap=data2_keymap,
+            data_table_keys=None,
+            data_table_nestkeys=None,
+            data_table_keymap=None,
+            data_svg=None,
+            data_table=None,
+            #svgtype='sankeydiagram2d_01',
+            svgtype='forcedirectedgraph2d_01',
+            tabletype='responsivetable_01',
+            svgx1axislabel='',
+            svgy1axislabel='',
+            tablekeymap = [data1_keymap],
+            svgkeymap = [data2_keymap],
             formtile2datamap=[0],
             tabletile2datamap=[0],
             svgtile2datamap=[0],
