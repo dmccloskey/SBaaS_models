@@ -912,7 +912,7 @@ class models_BioCyc_io(models_BioCyc_query,
             return data_json_O;
         with open(filename_str,'w') as file:
             file.write(nsvgtable.get_allObjects());
-    def export_geneRegulators_sankeyDiagram_js(self,
+    def export_geneTranscriptionUnitRegulators_sankeyDiagram_js(self,
                 genes_I,database_I='ECOLI',
                 query_I={},
                 data_dir_I='tmp'
@@ -1025,6 +1025,177 @@ class models_BioCyc_io(models_BioCyc_query,
             "svgwidth":300,#150,
             "svgheight":500,
             #"datalastchild":'transcription_unit',
+            'svgcolorcategory':'blue2red64',
+            'svgcolordomain':'min,max',
+			'svgcolordatalabel':'mode_',
+            'svgcolorscale':'quantile',
+            };
+        
+        nsvgtable = ddt_container_filterMenuAndChart2dAndTable();
+        nsvgtable.make_filterMenuAndChart2dAndTable(
+            data_filtermenu=regulator_tu,
+            data_filtermenu_keys=data1_keys,
+            data_filtermenu_nestkeys=data1_nestkeys,
+            data_filtermenu_keymap=data1_keymap,
+            data_svg_keys=None,
+            data_svg_nestkeys=None,
+            data_svg_keymap=data2_keymap,
+            data_table_keys=None,
+            data_table_nestkeys=None,
+            data_table_keymap=None,
+            data_svg=None,
+            data_table=None,
+            #svgtype='forcedirectedgraph2d_01',
+            svgtype='sankeydiagram2d_01',
+            #svgtype='bundlediagram2d_01',
+            #svgtype='chorddiagram2d_01',
+            tabletype='responsivetable_01',
+            svgx1axislabel='',
+            svgy1axislabel='',
+            tablekeymap = [data1_keymap],
+            svgkeymap = [data2_keymap],
+            formtile2datamap=[0],
+            tabletile2datamap=[0],
+            svgtile2datamap=[0], #calculated on the fly
+            svgfilters=None,
+            svgtileheader='chord diagram',
+            svgparameters_I=svgparameters,
+            tablefilters=None,
+            tableheaders=None
+            );
+
+        if data_dir_I=='tmp':
+            filename_str = self.settings['visualization_data'] + '/tmp/ddt_data.js'
+        elif data_dir_I=='data_json':
+            data_json_O = nsvgtable.get_allObjects_js();
+            return data_json_O;
+        with open(filename_str,'w') as file:
+            file.write(nsvgtable.get_allObjects());
+    def export_geneReactionAndEnzymaticReactionRegulators_sankeyDiagram_js(self,
+                genes_I,database_I='ECOLI',
+                query_I={},
+                data_dir_I='tmp'
+                ):
+        '''export a binary sankey diagram
+        INPUT:
+
+        query_I = {} of additional SQL query operators
+        data_dir_I
+        OUTPUT:
+        '''
+
+        #get the data
+        data1_O = [];
+        data2_O = [];
+        for gene in genes_I:
+            data_tmp = self.getJoin_enzymaticReactions_geneAndDatabase_modelsBioCycProteinAndPolymerSegmentAndEnzymaticReactionsAndRegulation(
+                gene,database_I=database_I,
+                query_I=query_I,
+                output_O='listDict',
+                dictColumn_I=None);
+            data1_O.extend(data_tmp);
+            data_tmp = self.getJoin_reactions_geneAndDatabase_modelsBioCycProteinAndPolymerSegmentAndReaction(
+                gene,database_I=database_I,
+                query_I=query_I,
+                output_O='listDict',
+                dictColumn_I=None);
+            data2_O.extend(data_tmp);
+
+        #>>> data_O[0].keys()
+        #dict_keys(['mode', 'protein_name', 'gene', 'regulated_entity', 'name', 'parent_classes', 'regulator'])
+        #for d in data2_O:
+        #    d['protein_name']=d['name'];
+        #    data1_O.append(d);
+
+        #group regulators and regulated TUs
+        regulator_tu = [];
+        regulator = {};
+        name = {};
+        parent_classes = {};
+        regulator_cnt=1
+        name_cnt=1
+        parent_classes_cnt=1
+        for d in data1_O:
+            reg_tu_dict = {};
+            reg_tu_dict['gene'] = d['gene']
+            # convert regulator to float
+            if not d['regulator'] in regulator.keys():
+                regulator[d['regulator']] = regulator_cnt;
+                regulator_cnt+=1;
+            reg_tu_dict['regulator'] = d['regulator']
+            reg_tu_dict['regulator_'] = regulator[d['regulator']];
+            # convert transcription unit to float
+            if not d['name'] in name.keys():
+                name[d['name']] = name_cnt;
+                name_cnt+=1;
+            reg_tu_dict['name'] = d['name']
+            reg_tu_dict['name_'] = name[d['name']];
+            # convert mode to float
+            if d['mode'] == '+': mode = 1
+            elif d['mode'] == '-': mode = 2
+            #if d['mode'] == '+': mode = 1
+            #elif d['mode'] == '-': mode = -1
+            reg_tu_dict['mode'] = d['mode'];
+            reg_tu_dict['mode_'] = mode;
+            # convert parent class to float
+            if not d['regulation_parent_classes'] in parent_classes.keys():
+                parent_classes[d['regulation_parent_classes']] = parent_classes_cnt;
+                parent_classes_cnt+=1;
+            reg_tu_dict['regulation_parent_classes'] = d['regulation_parent_classes'];
+            reg_tu_dict['regulation_parent_classes_'] = parent_classes[d['regulation_parent_classes']];
+            # make interaction float
+            interaction = parent_classes[d['regulation_parent_classes']]*mode;
+            reg_tu_dict['interaction'] = interaction;
+            if not reg_tu_dict in regulator_tu:
+                regulator_tu.append(reg_tu_dict);
+
+        #data1 = filter menu and table
+        data1_keys = [
+                    'gene',
+                    'regulator',
+                    'name',
+                    'regulation_parent_classes',
+                    'mode',
+                    ];
+        data1_nestkeys = [
+                    'regulation_parent_classes',
+                    'regulator',
+                    'name',
+            ];
+        data1_keymap = {
+            'xdata':'',
+            'ydata':'',
+            'zdata':'',
+            'rowslabel':'',
+            'columnslabel':'',
+            'tooltipdata':'',};
+         
+        #data2 = svg
+        #if single plot, data2 = filter menu, data2, and table
+        data2_keys = [
+                    'regulator',
+                    'name',
+                    ];
+        data2_nestkeys = [
+            'regulator',];
+        data2_keymap = {
+            'xdata':'mode_',
+            'ydata':'mode_',
+            #'xdata':'regulator_',
+            #'ydata':'name_',
+            'xdatalabel':'regulator',
+            'ydatalabel':'regulator',
+            'serieslabel':'regulator',
+            'featureslabel':'name',
+            #'tooltiplabel':'component_name',
+            };
+
+        svgparameters = {
+            'svgradius':250,
+            'svgouterradius':200,
+            'svginnerradius':190,
+            "svgwidth":300,#150,
+            "svgheight":500,
             'svgcolorcategory':'blue2red64',
             'svgcolordomain':'min,max',
 			'svgcolordatalabel':'mode_',
@@ -1256,7 +1427,8 @@ class models_BioCyc_io(models_BioCyc_query,
             d['marker']=1;
             left = dependencies.convert_bioCycList2List(d['left']);
             right = dependencies.convert_bioCycList2List(d['right']);
-            reaction = d['gene'];
+            #reaction = d['gene'];
+            reaction = d['name'];
             d['reaction'] = d['name'];
             d['name'] = d['frame_id'];
             d['enzyme'] = d['ec_number'];

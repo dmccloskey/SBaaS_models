@@ -45,16 +45,20 @@ biocyc01.initialize_tables()
 #    genes_I=['soxR','soxS','oxyR','oxyS','marA','rob'],
 #    metabolites_I = ['putrescine'],
 #    database_I = 'ECOLI');
-#biocyc01.export_geneRegulators_sankeyDiagram_js(
-#    genes_I=['soxR','soxS','oxyR','oxyS','marA','rob'],
+#biocyc01.export_geneTranscriptionUnitRegulators_sankeyDiagram_js(
+#    genes_I=['glnE'],
 #    database_I = 'ECOLI');
+
+biocyc01.export_geneReactionAndEnzymaticReactionRegulators_sankeyDiagram_js(
+    genes_I=['glnD'],
+    database_I = 'ECOLI');
 
 #biocyc01.export_geneReactions_forceDirectedGraph_js(
 #    genes_I=['glnL','glnG','glnB','glnD','glnE','glnK','glnA'],
 #    database_I = 'ECOLI');
-biocyc01.export_geneReactionsAndEnzymaticReactions_forceDirectedGraph_js(
-    genes_I=['glnL','glnG','glnB','glnD','glnE','glnK','glnA'],
-    database_I = 'ECOLI');
+#biocyc01.export_geneReactionsAndEnzymaticReactions_forceDirectedGraph_js(
+#    genes_I=['glnL','glnG','glnB','glnD','glnE','glnK','glnA'],
+#    database_I = 'ECOLI');
 
 #stringList_I = 'gadA,gadX,gadB,gadC'
 #str_list = stringList_I.split(',');

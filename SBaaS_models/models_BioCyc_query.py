@@ -1238,11 +1238,11 @@ class models_BioCyc_query(sbaas_template_query):
 
         dependencies = models_BioCyc_dependencies();
 
+        #get the proteins from the gene
         biocyc_proteins_parsed = self.getParsed_geneAndRegulatesAndNameAndComponentOf_geneAndDatabase_modelsBioCycProteins(
             gene_I,database_I=database_I,
             query_I=query_I,
             );
-
         if not biocyc_proteins_parsed:
             tmp = {};
             tmp['gene'] = gene_I;
@@ -1269,6 +1269,9 @@ class models_BioCyc_query(sbaas_template_query):
                 t['component']=dependencies.extract_regulatedEntityFromComponents(
                     t['components'])
                 biocyc_polymerSegments.append(t);
+
+        #check reactions and enzymatic reactions for regulation
+        #glutamine synthetase adenylyltransferase / glutamine synthetase deadenylase
 
         biocyc_regulation = [];
         for row in biocyc_polymerSegments:
