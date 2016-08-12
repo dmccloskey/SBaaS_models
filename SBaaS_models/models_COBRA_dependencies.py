@@ -249,15 +249,23 @@ class models_COBRA_dependencies():
             if rxn.id.endswith('_reverse') and not "reflection" in rxn.notes:
                 forward_rxn_id = rxn.id.replace('_reverse','');
                 rxn.notes.update({"reflection":forward_rxn_id});
-    def revert2reversible(self,cobra_model):
+    def revert2reversible(self,cobra_model,ignore_reflection=False):
         '''custom implementation of revert_to_reversible'''
-        reverse_reactions = [x for x in cobra_model.reactions
+        if ignore_reflection:
+            reverse_reactions = [x for x in cobra_model.reactions
+                          if x.id.endswith('_reverse')]
+        else:
+            reverse_reactions = [x for x in cobra_model.reactions
                           if "reflection" in x.notes and
                           x.id.endswith('_reverse')]
         if len(reverse_reactions) == 0:
             return;
         for reverse in reverse_reactions:
-            forward_id = reverse.notes.pop("reflection")
+            if ignore_reflection: 
+                forward_rev = cobra_model.reactions.get_by_id(reverse.id)
+                forward_id = forward_rev.id.replace('_reverse','');
+            else: 
+                forward_id = reverse.notes.pop("reflection")
             if forward_id in cobra_model.reactions:
                 forward = cobra_model.reactions.get_by_id(forward_id);
                 forward.lower_bound = -reverse.upper_bound
@@ -598,30 +606,52 @@ class models_COBRA_dependencies():
                 for product in rxn['products_ids']:
                     if product in exclusion_list_I: continue;
                     tmp = {};
-                    # add in weights
-                    tmp['weight']=weight;
                     # add in other attributes
                     if attributes_I:
                         for attr in attributes_I:
                             tmp[attr]=rx[attr];
-                    # define the left and right nodes
-                    tmp1 = copy.copy(tmp)
-                    tmp1['left']=reactant;
-                    tmp1['right']=rxn['rxn_id'];
-                    cobra_model_graph_O.append(tmp1);
-                    tmp1 = copy.copy(tmp)
-                    tmp1['left']=rxn['rxn_id'];
-                    tmp1['right']=product;
-                    cobra_model_graph_O.append(tmp1);
-                    # check for reversibility
-                    #if rxn['reversibility']:
-                    #    tmp1 = copy.copy(tmp)
-                    #    tmp1['left']=product;
-                    #    tmp1['right']=rxn['rxn_id'];
-                    #    cobra_model_graph_O.append(tmp1);
-                    #    tmp1 = copy.copy(tmp)
-                    #    tmp1['left']=rxn['rxn_id'];
-                    #    tmp1['right']=reactant;
+                    if weight > 0:
+                        # add in weights
+                        tmp['weight']=weight;
+                        # define the left and right nodes
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=reactant;
+                        tmp1['right']=rxn['rxn_id'];
+                        cobra_model_graph_O.append(tmp1);
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=rxn['rxn_id'];
+                        tmp1['right']=product;
+                        cobra_model_graph_O.append(tmp1);
+                        ## check for reversibility
+                        #if rxn['reversibility']:
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=product;
+                        #    tmp1['right']=rxn['rxn_id'];
+                        #    cobra_model_graph_O.append(tmp1);
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=rxn['rxn_id'];
+                        #    tmp1['right']=reactant;
+                    elif weight < 0:
+                        # add in weights
+                        tmp['weight']=-weight;
+                        # define the left and right nodes
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=product;
+                        tmp1['right']=rxn['rxn_id'];
+                        cobra_model_graph_O.append(tmp1);
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=rxn['rxn_id'];
+                        tmp1['right']=reactant;
+                        cobra_model_graph_O.append(tmp1);
+                        ## check for reversibility
+                        #if rxn['reversibility']:
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=reactant;
+                        #    tmp1['right']=rxn['rxn_id'];
+                        #    cobra_model_graph_O.append(tmp1);
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=rxn['rxn_id'];
+                        #    tmp1['right']=product;
 
         return cobra_model_graph_O;
 

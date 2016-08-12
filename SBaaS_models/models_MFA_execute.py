@@ -335,3 +335,57 @@ class models_MFA_execute(models_MFA_io):
         cobra_model_sbml = self.get_row_modelID_dataStage02IsotopomerModels(model_id_I);
         cobra_model = self.writeAndLoad_modelTable(cobra_model_sbml);
         return cobra_model;
+
+    
+    def execute_findShortestPath_nodes(self,model_id_I,
+            nodes_startAndStop_I,
+            algorithm_I='all_simple_paths',params_I={'cutoff':25},
+            exclusion_list_I=[],
+            weights_I=None
+            ):
+        '''
+        INPUT:
+        model_id_I: model id [string]
+        nodes_startAndStop_I: list of node start/stops
+            e.g., [[nad_c,nadh_c],[g6p_c,f6p_c],...]
+        OUTPUT:
+        shortest_path_O = [{[nad_c,nadh_c]:algorithm_I output},...]
+
+        distance = (len(sp['shortest_path'])-1)/2
+        '''
+        shortest_path_O = [];
+        # get the model reactions from table
+        reactions = self.get_rows_modelID_dataStage02IsotopomerModelReactions(model_id_I);
+        #convert rxns list to directed graph
+        aCyclicGraph = self.convert_modelReactionsTable2DirectedAcyclicGraph(
+            reactions,weights_I=weights_I,attributes_I={},
+            exclusion_list_I=exclusion_list_I);
+        # find the shortest paths
+        for startAndStop in nodes_startAndStop_I:
+            tmp = {'start':startAndStop[0],'stop':startAndStop[1]};
+
+            ## find shortest path for each node_start and stop pair
+            #algorithm_I = 'astar_path';
+            #params_I={}
+            #output1 = self.find_shortestPath_nodes(
+            #    aCyclicGraph,startAndStop[0],startAndStop[1],
+            #    algorithm_I=algorithm_I,params_I=params_I);
+            #distance = (len(output1)-1)/2;
+            #tmp['shortest_path'] = distance;
+
+            # find maximum and average path for each node_start and stop pair
+            #algorithm_I='all_simple_paths';
+            #params_I={'cutoff':25};
+            output2 = self.find_shortestPath_nodes(
+                aCyclicGraph,startAndStop[0],startAndStop[1],
+                algorithm_I=algorithm_I,params_I=params_I);
+            paths = [o for o in output2];
+            distances = [(len(p)-1)/2 for p in paths]
+            dist_ave = sum(distances)/len(paths);
+            dist_max = max(distances);
+            dist_min = min(distances);
+            tmp['longest_path'] = dist_max;
+            tmp['average_path'] = dist_ave;
+            tmp['shortest_path'] = dist_min;
+            shortest_path_O.append(tmp);
+        return shortest_path_O;

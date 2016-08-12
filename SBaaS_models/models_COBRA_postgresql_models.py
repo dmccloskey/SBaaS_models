@@ -32,8 +32,17 @@ class data_stage02_physiology_models(Base):
     __table_args__ = (
             UniqueConstraint('model_id'),
             )
+    def __init__(self, 
+                row_dict_I,
+                ):
+        self.date=row_dict_I['date'];
+        self.model_id=row_dict_I['model_id'];
+        self.model_name=row_dict_I['model_name'];
+        self.model_description=row_dict_I['model_description'];
+        self.model_file=row_dict_I['model_file'];
+        self.file_type=row_dict_I['file_type'];
 
-    def __init__(self,model_id_I,
+    def __set__row__(self,model_id_I,
             model_name_I,
             model_description_I,
             model_file_I,
@@ -83,8 +92,29 @@ class data_stage02_physiology_modelReactions(Base):
     __table_args__ = (
             UniqueConstraint('model_id','rxn_id'),
             )
+    def __init__(self, 
+                row_dict_I,
+                ):
+        self.upper_bound=row_dict_I['upper_bound'];
+        self.flux_units=row_dict_I['flux_units'];
+        self.reversibility=row_dict_I['reversibility'];
+        self.used_=row_dict_I['used_'];
+        self.comment_=row_dict_I['comment_'];
+        self.objective_coefficient=row_dict_I['objective_coefficient'];
+        self.lower_bound=row_dict_I['lower_bound'];
+        self.products_ids=row_dict_I['products_ids'];
+        self.reactants_ids=row_dict_I['reactants_ids'];
+        self.products_stoichiometry=row_dict_I['products_stoichiometry'];
+        self.reactants_stoichiometry=row_dict_I['reactants_stoichiometry'];
+        self.genes=row_dict_I['genes'];
+        self.gpr=row_dict_I['gpr'];
+        self.subsystem=row_dict_I['subsystem'];
+        self.equation=row_dict_I['equation'];
+        self.rxn_name=row_dict_I['rxn_name'];
+        self.rxn_id=row_dict_I['rxn_id'];
+        self.model_id=row_dict_I['model_id'];
 
-    def __init__(self,model_id_I,
+    def __set__row__(self,model_id_I,
             rxn_id_I,
             rxn_name_I,
             equation_I,
@@ -161,8 +191,21 @@ class data_stage02_physiology_modelMetabolites(Base):
     __table_args__ = (
             UniqueConstraint('model_id','met_id'),
             )
+    def __init__(self, 
+                row_dict_I,
+                ):
+        self.compartment=row_dict_I['compartment'];
+        self.charge=row_dict_I['charge'];
+        self.formula=row_dict_I['formula'];
+        self.met_id=row_dict_I['met_id'];
+        self.met_name=row_dict_I['met_name'];
+        self.model_id=row_dict_I['model_id'];
+        self.comment_=row_dict_I['comment_'];
+        self.used_=row_dict_I['used_'];
+        self.constraint_sense=row_dict_I['constraint_sense'];
+        self.bound=row_dict_I['bound'];
 
-    def __init__(self,model_id_I,
+    def __set__row__(self,model_id_I,
             met_name_I,
             met_id_I,
             formula_I,

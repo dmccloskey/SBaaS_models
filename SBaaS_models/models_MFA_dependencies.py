@@ -7,6 +7,7 @@ from cobra.io.json import load_json_model, save_json_model
 from molmass.molmass import Formula
 # System dependencies
 import re
+import copy
 class models_MFA_dependencies():
     def _parse_model_sbml(self,model_id_I,date_I,filename_I):
         # Read in the sbml file and define the model conditions
@@ -410,3 +411,123 @@ class models_MFA_dependencies():
         for rxn,flux in flux_dict.items():
             cobra_model.reactions.get_by_id(rxn).lower_bound = flux['lb'];
             cobra_model.reactions.get_by_id(rxn).upper_bound = flux['ub'];
+
+    def find_shortestPath_nodes(self,
+            graph_I,node_start_I,node_stop_I,
+            algorithm_I='astar_path_length',params_I={},
+            ):
+        '''Find the minimum node distance between two metabolites
+        INPUT:
+        graph_I: list of dictionaries with keys for 'left', 'right', and 'weight' [list]
+        cobra_model_I: cobra model object [class]
+        node_start_I: metabolite id source [string]
+        node_stop_I: metabolite id sink [string]
+        algorithmn_I: search algorith to use [string]
+            list of algorithms: http://networkx.readthedocs.io/en/networkx-1.11/reference/algorithms.shortest_paths.html
+        params_I: list of additional parameters to pass to the shortest path algorithm
+        OUTPUT:
+        nodeDist_O: dictionary of metabolite ids and distances
+            {met_id [string]: distance [float]}
+        NOTES: http://networkx.readthedocs.io/en/networkx-1.11/tutorial/tutorial.html
+        import networkx as nx
+        G = nx.DiGraph()
+        G.add_edges_from([(1,2,{'color':'blue'}), (2,3,{'weight':8})])
+        astar_path_length(G, source, target, heuristic=None, weight='weight')
+
+        '''
+        distance_O = None;
+        #instantiate the networkx graph utility
+        import networkx as nx
+        G = nx.DiGraph()
+        #build the networkx graph
+        nx_input = [(row['left'],row['right'],row) for row in graph_I];
+        G.add_edges_from(nx_input);
+        #call the algorithm
+        if hasattr(nx, algorithm_I):
+            algorithm = getattr(nx,algorithm_I);
+            distance_O = algorithm(G, node_start_I, node_stop_I, **params_I)
+        else:
+            print('shortest path algorithm not recognized');
+        return distance_O;
+    def convert_modelReactionsTable2DirectedAcyclicGraph(
+            self,rxns_I,
+            weights_I=None,
+            attributes_I=[],
+            exclusion_list_I=[]):
+        '''Convert a cobramodel to a directed acyclic graph
+        INPUT:
+        rxns_I: list of cobra model reactions [list]
+        attributes_I = list of other keys to add in to each element of the output list [string]
+        weights_I = edge weights
+            [string]: column id to use as the weight
+            [dict]: {rxn_id [string]: weight [float]}
+            [None]: default, 1.0 (i.e., unit weight)
+        exclusion_list_I = [list of nodes to exclude]
+        OUTPUT:
+        cobra_model_graph_O: [{left:[string],right:[string],weight:[float]}]
+        '''
+        cobra_model_graph_O = [];
+        for rxn in rxns_I:
+            if rxn['rxn_id'] in exclusion_list_I: continue;
+            if not weights_I:
+                weight = 1.0;
+            elif type(weights_I)==type(''):
+                weight = rxn[weights_I];
+            elif type(weights_I)==type({}):
+                weight = weights_I[rxn['rxn_id']];
+            else: 
+                weight = 1.0;
+            if weight == 0: continue;
+            for reactant in rxn['reactants_ids']:
+                if reactant in exclusion_list_I: continue;
+                for product in rxn['products_ids']:
+                    if product in exclusion_list_I: continue;
+                    tmp = {};
+                    # add in other attributes
+                    if attributes_I:
+                        for attr in attributes_I:
+                            tmp[attr]=rx[attr];
+                    if weight > 0:
+                        # add in weights
+                        tmp['weight']=weight;
+                        # define the left and right nodes
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=reactant;
+                        tmp1['right']=rxn['rxn_id'];
+                        cobra_model_graph_O.append(tmp1);
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=rxn['rxn_id'];
+                        tmp1['right']=product;
+                        cobra_model_graph_O.append(tmp1);
+                        ## check for reversibility
+                        #if rxn['reversibility']:
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=product;
+                        #    tmp1['right']=rxn['rxn_id'];
+                        #    cobra_model_graph_O.append(tmp1);
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=rxn['rxn_id'];
+                        #    tmp1['right']=reactant;
+                    elif weight < 0:
+                        # add in weights
+                        tmp['weight']=-weight;
+                        # define the left and right nodes
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=product;
+                        tmp1['right']=rxn['rxn_id'];
+                        cobra_model_graph_O.append(tmp1);
+                        tmp1 = copy.copy(tmp)
+                        tmp1['left']=rxn['rxn_id'];
+                        tmp1['right']=reactant;
+                        cobra_model_graph_O.append(tmp1);
+                        ## check for reversibility
+                        #if rxn['reversibility']:
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=reactant;
+                        #    tmp1['right']=rxn['rxn_id'];
+                        #    cobra_model_graph_O.append(tmp1);
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=rxn['rxn_id'];
+                        #    tmp1['right']=product;
+
+        return cobra_model_graph_O;
