@@ -8,6 +8,10 @@ from cobra.flux_analysis.variability import flux_variability_analysis
 from cobra.flux_analysis.parsimonious import optimize_minimal_flux
 from cobra.flux_analysis import flux_variability_analysis
 from cobra.manipulation.modify import convert_to_irreversible, revert_to_reversible
+# Resources
+from python_statistics.calculate_interface import calculate_interface
+from math import sqrt
+
 class models_COBRA_execute(models_COBRA_io):
     def execute_makeModel(self,
             model_id_I=None,
@@ -266,6 +270,7 @@ class models_COBRA_execute(models_COBRA_io):
 
         distance = (len(sp['shortest_path'])-1)/2
         '''
+        calc = calculate_interface();
         shortest_path_O = [];
         # get the model reactions from table
         reactions = self.get_rows_modelID_dataStage02PhysiologyModelReactions(model_id_I);
@@ -292,14 +297,34 @@ class models_COBRA_execute(models_COBRA_io):
             output2 = self.find_shortestPath_nodes(
                 aCyclicGraph,startAndStop[0],startAndStop[1],
                 algorithm_I=algorithm_I,params_I=params_I);
-            paths = [o for o in output2];
-            distances = [(len(p)-1)/2 for p in paths]
-            dist_ave = sum(distances)/len(paths);
-            dist_max = max(distances);
-            dist_min = min(distances);
-            tmp['longest_path'] = dist_max;
-            tmp['average_path'] = dist_ave;
-            tmp['shortest_path'] = dist_min;
+            if str(type(output2))=="<class 'generator'>":
+                paths = [o for o in output2];
+                distances = [(len(p)-1)/2 for p in paths]
+            else:
+                paths = [output2];
+                distances = [(len(output2)-1)/2];
+            tmp['all_paths'] = paths;
+            tmp['algorithm'] = algorithm_I;
+            tmp['params'] = params_I;
+            #calculate descriptive statistics on the paths
+            data_ave_O, data_var_O, data_lb_O, data_ub_O = calc.calculate_ave_var(distances,confidence_I = 0.95);
+            if data_ave_O:
+                data_cv_O = sqrt(data_var_O)/data_ave_O*100;
+            else:
+                data_cv_O = None;
+            min_O, max_O, median_O, iq_1_O, iq_3_O=calc.calculate_interquartiles(distances);
+            tmp['path_max'] = max_O;
+            tmp['path_min'] = min_O;
+            tmp['path_iq_1'] = iq_1_O;
+            tmp['path_iq_3'] = iq_3_O;
+            tmp['path_median'] = median_O;
+            tmp['path_average'] = data_ave_O;
+            tmp['path_var'] = data_var_O;
+            tmp['path_n'] = len(paths);
+            tmp['path_cv'] = data_cv_O;
+            tmp['path_ci_lb'] = data_lb_O;
+            tmp['path_ci_ub'] = data_ub_O;
+            tmp['path_ci_level'] = 0.95;
             shortest_path_O.append(tmp);
         return shortest_path_O;
 

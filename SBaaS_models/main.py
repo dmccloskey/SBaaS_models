@@ -72,22 +72,16 @@ biocyc01.initialize_tables()
 
 #biocyc01.export_GOTermGenes_js('GO:0046034','ECOLI');
 
-#make the COBRA table
-from SBaaS_models.models_COBRA_execute import models_COBRA_execute
-exCOBRA01 = models_COBRA_execute(session,engine,pg_settings.datadir_settings);
-exCOBRA01.initialize_supportedTables();
-exCOBRA01.initialize_COBRA_models();
-
-models = exCOBRA01.get_models(['iJO1366_ALEWt_irreversible']);
-from SBaaS_COBRA.cobra_simulatedData import cobra_simulatedData
-
-# generate pseudo weights
-simdata = cobra_simulatedData();
-simdata.generate_fba_data(models['iJO1366_ALEWt_irreversible'],allow_loops=True, method_I='pfba',solver='cglpk')
-weights = simdata.fba_primal_data;
-
 # generate the exclusion list of non-carbon and cofactor metabolites
-exclusion_noC_str = '2fe1s,2fe2s,3fe4s,4fe4s,ag,apoACP,aso3,aso4,tsul,dsbdox,dsbdrd,fe2,fe3,flxr,flxso,grxox,grxrd,h,h2,h2o,h2o2,h2s,hg2,iscs,iscssh,iscu,iscu_DASH_2fe2s,iscu_DASH_2fe2s2,iscu_DASH_4fe4s,k,mg2,mn2,mobd,n2o,na1,nh4,ni2,no,no2,no3,o2,o2s,pi,ppi,pppi,sel,seln,selnp,slnt,so2,so3,so4,sufbcd,sufbcd_DASH_2fe2s,sufbcd_DASH_2fe2s2,sufbcd_DASH_4fe4s,sufse,sufsesh,trdox,trdrd,trnaala,trnaarg,trnaasp,trnacys,trnagln,trnaglu,trnagly,trnahis,trnaile,trnaleu,trnalys,trnamet,trnaphe,trnapro,trnasecys,trnaser,trnathr,trnatrp,trnatyr,trnaval,tungs,zn2,ppt,alpp,dsbaox,dsbard,dsbcox,dsbcrd,dsbgox,dsbgrd'
+exclusion_noC_str = '2fe1s,2fe2s,3fe4s,4fe4s,ag,apoACP,aso3,aso4,tsul,\
+dsbdox,dsbdrd,fe2,fe3,flxr,flxso,grxox,grxrd,h,h2,h2o,h2o2,h2s,hg2,iscs,\
+iscssh,iscu,iscu_DASH_2fe2s,iscu_DASH_2fe2s2,iscu_DASH_4fe4s,k,mg2,mn2,mobd,\
+n2o,na1,nh4,ni2,no,no2,no3,o2,o2s,pi,ppi,pppi,sel,seln,selnp,slnt,so2,so3,\
+so4,sufbcd,sufbcd_DASH_2fe2s,sufbcd_DASH_2fe2s2,sufbcd_DASH_4fe4s,sufse,\
+sufsesh,trdox,trdrd,trnaala,trnaarg,trnaasp,trnacys,trnagln,trnaglu,trnagly,\
+trnahis,trnaile,trnaleu,trnalys,trnamet,trnaphe,trnapro,trnasecys,trnaser,\
+trnathr,trnatrp,trnatyr,trnaval,tungs,zn2,ppt,alpp,dsbaox,dsbard,dsbcox,dsbcrd,\
+dsbgox,dsbgrd'
 exclusion_noC = exclusion_noC_str.split(',');
 exclusion_other = ['co2','co']
 exclusion_cofactors = [
@@ -115,23 +109,48 @@ for met in exclusion_mets:
 # define other inputs
 nodes_startAndStop = [
     ['g6p_c','icit_c'],
+    ['g6p_c','r5p_c'],
     ['g6p_c','gthrd_c'],
     ];
 algorithms_params = [
     {'algorithm':'all_shortest_paths','params':{'weight':'weight'}},
-    {'algorithm':'all_simple_paths','params':{'cutoff':50}},
+    {'algorithm':'all_simple_paths','params':{'cutoff':25}},
+    {'algorithm':'astar_path','params':{'weight':'weight'}},
                      ];
 
+#make the COBRA table
+from SBaaS_models.models_COBRA_execute import models_COBRA_execute
+exCOBRA01 = models_COBRA_execute(session,engine,pg_settings.datadir_settings);
+exCOBRA01.initialize_supportedTables();
+exCOBRA01.initialize_COBRA_models();
+
+from SBaaS_COBRA.stage02_physiology_sampledData_query import stage02_physiology_sampledData_query
+qSampledData01 = stage02_physiology_sampledData_query(session,engine,pg_settings.datadir_settings);
+qSampledData01.initialize_supportedTables();
+qSampledData01.initialize_tables();
+
+# use the average of the sampled fluxes as the weights
+rows=qSampledData01.get_rows_simulationID_dataStage02PhysiologySampledData(
+    "ALEsKOs01_151026_iDM2015_full05_OxicEvo04gndEvo01EPEcoliGlc_11",
+)
+weights = {d['rxn_id']:d['sampling_ave'] for d in rows};
+weights_reverse = {d['rxn_id']+'_reverse':-d['sampling_ave'] for d in rows};
+weights.update(weights_reverse);
+
 # run the analysis for different algorithms/params
+shortestPaths_O = [];
 for row in algorithms_params:
     shortestPaths = exCOBRA01.execute_findShortestPath_nodes(
-        'iJO1366_ALEWt_irreversible',
+        '150526_iDM2015',
         nodes_startAndStop_I = nodes_startAndStop,
         algorithm_I=row['algorithm'],
         exclusion_list_I=exclusion_list,
         params_I=row['params'],    
         weights_I=weights
         )
+    shortestPaths_O.append(shortestPaths);
     for sp in shortestPaths:
-        str = "start: %s, stop: %s, output: %s" %(sp['start'],sp['stop'],sp['shortest_path'])
+        str = "start: %s, stop: %s, min: %s, max: %s, average: %s, " \
+                %(sp['start'],sp['stop'],sp['path_min'],
+                  sp['path_max'],sp['path_average'])
         print(str)

@@ -596,11 +596,11 @@ class models_COBRA_dependencies():
                 weight = 1.0;
             elif type(weights_I)==type(''):
                 weight = rxn[weights_I];
-            elif type(weights_I)==type({}):
+            elif type(weights_I)==type({}) and rxn['rxn_id'] in weights_I.keys():
                 weight = weights_I[rxn['rxn_id']];
             else: 
                 weight = 1.0;
-            if weight == 0: continue;
+            if weight <= 0: continue;
             for reactant in rxn['reactants_ids']:
                 if reactant in exclusion_list_I: continue;
                 for product in rxn['products_ids']:
