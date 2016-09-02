@@ -595,9 +595,9 @@ class models_COBRA_dependencies():
             if not weights_I:
                 weight = 1.0;
             elif type(weights_I)==type(''):
-                weight = rxn[weights_I];
+                weight = 1/rxn[weights_I]; #note weight = distance
             elif type(weights_I)==type({}) and rxn['rxn_id'] in weights_I.keys():
-                weight = weights_I[rxn['rxn_id']];
+                weight = 1/weights_I[rxn['rxn_id']];
             else: 
                 weight = 1.0;
             if weight <= 0: continue;

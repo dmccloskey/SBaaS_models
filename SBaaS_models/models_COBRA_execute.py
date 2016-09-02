@@ -281,38 +281,35 @@ class models_COBRA_execute(models_COBRA_io):
         # find the shortest paths
         for startAndStop in nodes_startAndStop_I:
             tmp = {'start':startAndStop[0],'stop':startAndStop[1]};
-
-            ## find shortest path for each node_start and stop pair
-            #algorithm_I = 'astar_path';
-            #params_I={}
-            #output1 = self.find_shortestPath_nodes(
-            #    aCyclicGraph,startAndStop[0],startAndStop[1],
-            #    algorithm_I=algorithm_I,params_I=params_I);
-            #distance = (len(output1)-1)/2;
-            #tmp['shortest_path'] = distance;
-
-            # find maximum and average path for each node_start and stop pair
-            #algorithm_I='all_simple_paths';
-            #params_I={'cutoff':25};
-            output2 = self.find_shortestPath_nodes(
-                aCyclicGraph,startAndStop[0],startAndStop[1],
-                algorithm_I=algorithm_I,params_I=params_I);
-            if str(type(output2))=="<class 'generator'>":
-                paths = [o for o in output2];
-                distances = [(len(p)-1)/2 for p in paths]
-            else:
-                paths = [output2];
-                distances = [(len(output2)-1)/2];
+            try:
+                output2 = self.find_shortestPath_nodes(
+                    aCyclicGraph,startAndStop[0],startAndStop[1],
+                    algorithm_I=algorithm_I,params_I=params_I);
+                if str(type(output2))=="<class 'generator'>":
+                    paths = [o for o in output2];
+                    distances = [(len(p)-1)/2 for p in paths]
+                else:
+                    paths = [output2];
+                    distances = [(len(output2)-1)/2];
+            except Exception as e:
+                print(e);
+                print('algorithm = ' + algorithm_I + '; start = ' + startAndStop[0] + '; stop = ' + startAndStop[1]);
+                continue;
+            #calculate descriptive statistics on the paths
+            try:
+                data_ave_O, data_var_O, data_lb_O, data_ub_O = calc.calculate_ave_var(distances,confidence_I = 0.95);
+                if data_ave_O:
+                    data_cv_O = sqrt(data_var_O)/data_ave_O*100;
+                else:
+                    data_cv_O = None;
+                min_O, max_O, median_O, iq_1_O, iq_3_O=calc.calculate_interquartiles(distances);
+            except Exception as e:
+                print(e);
+                print('algorithm = ' + algorithm_I + '; start = ' + startAndStop[0] + '; stop = ' + startAndStop[1]);
+                continue;
             tmp['all_paths'] = paths;
             tmp['algorithm'] = algorithm_I;
             tmp['params'] = params_I;
-            #calculate descriptive statistics on the paths
-            data_ave_O, data_var_O, data_lb_O, data_ub_O = calc.calculate_ave_var(distances,confidence_I = 0.95);
-            if data_ave_O:
-                data_cv_O = sqrt(data_var_O)/data_ave_O*100;
-            else:
-                data_cv_O = None;
-            min_O, max_O, median_O, iq_1_O, iq_3_O=calc.calculate_interquartiles(distances);
             tmp['path_max'] = max_O;
             tmp['path_min'] = min_O;
             tmp['path_iq_1'] = iq_1_O;
