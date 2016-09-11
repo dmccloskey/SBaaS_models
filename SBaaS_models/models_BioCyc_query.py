@@ -926,6 +926,70 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
+    def get_nameAndAccession1_database_modelsBioCycPolymerSegments(
+        self,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT name,accession_1 FROM models_biocyc_polymerSegments
+        WHERE name =ANY ('{...}'::text[]) '''
+        
+        tables = ['models_biocyc_polymerSegments']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0],'column_name':'name'},
+            {"table_name":tables[0],'column_name':'accession_1'},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'accession_1',
+            'value':'',
+            'operator':'!=',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['group_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            },
+            {"table_name":tables[0],
+            'column_name':'accession_1',
+            },
+        ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'accession_1',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
 
     #models_biocyc_proteinFeatures
     def get_rows_featureOfAndDatabase_modelsBioCycProteinFeatures(
