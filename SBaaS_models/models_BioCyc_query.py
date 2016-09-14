@@ -301,8 +301,127 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
+    def get_rows_nameAndDatabase_modelsBioCycProteins(
+        self,name_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_proteins
+        WHERE gene LIKE '''
+        
+        tables = ['models_biocyc_proteins']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':name_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
 
     #models_biocyc_regulation
+    def get_rows_databaseAndNotNull_modelsBioCycRegulation(
+        self,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT *
+        FROM models_biocyc_regulation
+        WHERE LIKE '''
+        
+        tables = ['models_biocyc_regulation']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'regulated_entity ',
+            'value':'',
+            'operator':'!=',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'regulator  ',
+            'value':'',
+            'operator':'!=',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'parent_classes',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'mode',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'regulator',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'regulated_entity',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
     def get_regulatedEntityAndRegulatorAndModeAndParentClasses_geneAndDatabase_modelsBioCycRegulation(
         self,name_I,database_I='ECOLI',
         query_I={},
@@ -990,6 +1109,127 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
+    def get_rows_nameAndDatabase_modelsBioCycPolymerSegments(
+        self,
+        name_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_polymerSegments
+        WHERE name LIKE '''
+        
+        tables = ['models_biocyc_polymerSegments']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':name_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'parent_classes',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_componentsAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
+        self,
+        components_I,
+        parentClasses_I = '("Transcription-Units")',
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT name FROM models_biocyc_polymerSegments
+        WHERE components LIKE '''
+        
+        tables = ['models_biocyc_polymerSegments']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        components_where = '%s"%s"%s' %('%',components_I,'%')
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'components',
+            'value':components_where,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'parent_classes',
+            'value':parentClasses_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'components',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
 
     #models_biocyc_proteinFeatures
     def get_rows_featureOfAndDatabase_modelsBioCycProteinFeatures(
@@ -1257,6 +1497,165 @@ class models_BioCyc_query(sbaas_template_query):
             {"table_name":tables[0],
             'column_name':'enzyme',
             'value':enzyme_where,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_nameAndDatabase_modelsBioCycEnzymaticReactions(
+        self,name_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_enzymaticReactions
+        WHERE enzyme LIKE '''
+        
+        tables = ['models_biocyc_enzymaticReactions']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':name_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+
+    #models_biocyc_compounds
+    def get_rows_nameAndDatabase_modelsBioCycCompounds(
+        self,name_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_compounds
+        WHERE name LIKE %s AND database LIKE %s
+        '''
+        
+        tables = ['models_biocyc_compounds']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':name_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+
+    #models_biocyc_RNAs
+    def get_rows_nameAndDatabase_modelsBioCycRNAs(
+        self,name_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_RNAs
+        WHERE name LIKE %s AND database LIKE %s
+        '''
+        
+        tables = ['models_biocyc_RNAs']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':name_I,
             'operator':'LIKE',
             'connector':'AND'
                 },
@@ -1790,6 +2189,140 @@ class models_BioCyc_query(sbaas_template_query):
                 tmp['feature_of'] = dependencies.convert_bioCycList2List(tmp['feature_of'])[0];
                 biocyc_features.append(tmp);                
 
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        data_O = [];
+        for row in biocyc_features:
+            if not row in data_O:
+                data_O.append(row);
+
+        return data_O;
+
+    def getJoin_regulatorsAndRegulatedEntities_database_modelsBioCycRegulationAndAll(
+        self,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''
+        SELECT 
+         FROM  
+         WHERE  LIKE '''
+
+        dependencies = models_BioCyc_dependencies();
+
+        data_O = [];
+        regulated_entities_proteins_O = [];
+        regulated_entities_enzymaticReactions_O = [];
+        regulated_entities_polymerSegments1_O = [];
+        regulated_entities_polymerSegments2_O = [];
+        regulators_compounds_O = [];
+        regulators_proteins_O = [];
+        regulators_RNAs_O = [];
+        #get regulators and regulated entities
+        regulation = self.get_rows_databaseAndNotNull_modelsBioCycRegulation(
+            database_I=database_I,
+            query_I=query_I,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I
+            );
+        for reg in regulation:
+            #lookup the regulated_entities
+            regulated_entities_proteins = self.get_rows_nameAndDatabase_modelsBioCycProteins(
+                name_I = reg['regulated_entity'],
+                database_I = database_I)
+            for reps in regulated_entities_proteins:
+                genes = self.convert_bioCycList2List(reps['name']);
+                for gene in genes:
+                    #parse out genes and proteins
+                    tmp = copy.copy(reg);
+                    tmp['regulated_entity_protein'] = reps['name'];
+                    tmp['regulated_entity_gene'] = gene;
+                    regulated_entities_proteins_O.append(tmp);
+            regulated_entities_enzymaticReactions = self.get_rows_nameAndDatabase_modelsBioCycEnzymaticReactions(
+                name_I = reg['regulated_entity'],
+                database_I = database_I)
+            for reps in regulated_entities_enzymaticReactions:
+                genes = self.convert_bioCycList2List(reps['name']);
+                for gene in genes:
+                    #parse out genes and proteins
+                    tmp = copy.copy(reg);
+                    tmp['regulated_entity_enzymaticReaction'] = reps['name'];
+                    tmp['regulated_entity_gene'] = gene;
+                    regulated_entities_enzymaticReactions_O.append(tmp);
+            regulated_entities_polymerSegments = self.get_rows_nameAndDatabase_modelsBioCycPolymerSegments(
+                name_I = reg['regulated_entity'],
+                database_I = database_I)
+            for reps in regulated_entities_polymerSegments:
+                products = self.convert_bioCycList2List(reps['products'])
+                for product in products:
+                    #gene/promoter
+                    #parse out the products
+                    tmp = copy.copy(reg);
+                    tmp['regulated_entity_gene'] = reps['name'];
+                    tmp['regulated_entity_products'] = product;
+                    regulated_entities_polymerSegments1_O.append(tmp);
+            regulated_entities_polymerSegments = self.get_rows_componentsAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
+                components_I = reg['regulated_entity'],
+                database_I = database_I)
+            for reps in regulated_entities_polymerSegments:
+                genes = self.parse_transcriptionUnit(reps['name']);
+                for gene in genes:
+                    #gene/promoter
+                    #parse out transcription units then genes
+                    tmp = copy.copy(reg);
+                    tmp['regulated_entity_promoter'] = reps['name'];
+                    tmp['regulated_entity_gene'] = gene;
+                    regulated_entities_polymerSegments2_O.append(tmp);
+            #lookup the regulators
+            regulators_compounds = self.get_rows_nameAndDatabase_modelsBioCycCompounds(
+                name_I = reg['regulator'],
+                database_I = database_I)
+            for regs in regulators_compounds:
+                tmp = copy.copy(reg);
+                tmp['regulator_compound'] = regs['name'];
+                regulators_compounds_O.append(tmp);
+            regulators_proteins = self.get_rows_nameAndDatabase_modelsBioCycProteins(
+                name_I = reg['regulator'],
+                database_I = database_I)
+            for regs in regulators_proteins:
+                genes = self.convert_bioCycList2List(regs['name']);
+                for gene in genes:
+                    #parse out genes and proteins
+                    tmp = copy.copy(reg);
+                    tmp['regulator_protein'] = regs['name'];
+                    tmp['regulator_gene'] = gene;
+                    regulators_proteins_O.append(tmp);
+            regulators_RNAs = self.get_rows_nameAndDatabase_modelsBioCycRNAs(
+                name_I = reg['regulator'],
+                database_I = database_I)
+            for regs in regulators_RNAs:
+                genes = self.convert_bioCycList2List(regs['name']);
+                for gene in genes:
+                    #parse out genes and rans
+                    tmp = copy.copy(reg);
+                    tmp['regulator_RNA'] = regs['name'];
+                    tmp['regulator_gene'] = gene;
+                    regulators_RNAs_O.append(tmp);
+            #lookup the names (alternative to regulators)
+            #models_biocyc_proteins.regulates LIKE '%"[]"%' -> models_biocyc_proteins.gene (parse string list)
+            #models_biocyc_RNAs.regulates LIKE '%"[]"%' -> models_biocyc_RNAs.gene (parse string list)
+            #models_biocyc_compounds.regulates LIKE 'u%"[]"%' -> models_biocyc_compounds.name            
+
+        #combine all lists into a list
+        for reg in regulation:
+            reg_O = [];
+            for regent in regulated_entities_proteins_O:
+                tmp = copy.copy(reg);
+                tmp['regulated_entity_protein'] = reps['name'];
+                tmp['regulated_entity_gene'] = gene;
+                reg_O.append(tmp);
+            for rO in reg_O:
+                for regent in regulated_entities_enzymaticReactions_O:
+                    if rO['gene']==regent['gene']:
+                        rO['regulated_entity_enzymaticReaction'] = regent['regulated_entity_enzymaticReaction']
+            regulated_entities_enzymaticReactions_O = [];
+            regulated_entities_polymerSegments1_O = [];
+            regulated_entities_polymerSegments2_O = [];
         #remove duplicate entries
         #(NOTE: only works because each dictionary is constructed identically)
         data_O = [];
