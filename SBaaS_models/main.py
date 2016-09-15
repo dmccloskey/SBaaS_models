@@ -1,10 +1,12 @@
-import sys
-sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
+﻿import sys
+#sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
+sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
 from SBaaS_base.postgresql_settings import postgresql_settings
 from SBaaS_base.postgresql_orm import postgresql_orm
 
 # read in the settings file
-filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
+#filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
+filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_labtop.ini';
 pg_settings = postgresql_settings(filename);
 
 # connect to the database from the settings file
@@ -71,3 +73,5 @@ biocyc01.initialize_tables()
 #biocyc01.export_transcriptionUnitParentClassesHistogram_js(str_list,'ECOLI',single_plot_I=True);
 
 #biocyc01.export_GOTermGenes_js('GO:0046034','ECOLI');
+
+biocyc01.getJoin_regulatorsAndRegulatedEntities_database_modelsBioCycRegulationAndAll('ECOLI')

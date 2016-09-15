@@ -371,18 +371,18 @@ class models_BioCyc_query(sbaas_template_query):
             ];
 
         query['where'] = [
-            {"table_name":tables[0],
-            'column_name':'regulated_entity ',
-            'value':'',
-            'operator':'!=',
-            'connector':'AND'
-                },
-            {"table_name":tables[0],
-            'column_name':'regulator  ',
-            'value':'',
-            'operator':'!=',
-            'connector':'AND'
-                },
+            #{"table_name":tables[0],
+            #'column_name':'regulated_entity ',
+            #'value':'',
+            #'operator':'!=',
+            #'connector':'AND'
+            #    },
+            #{"table_name":tables[0],
+            #'column_name':'regulator  ',
+            #'value':'',
+            #'operator':'!=',
+            #'connector':'AND'
+            #    },
             {"table_name":tables[0],
             'column_name':'database',
             'value':database_I,
@@ -2211,13 +2211,7 @@ class models_BioCyc_query(sbaas_template_query):
         dependencies = models_BioCyc_dependencies();
 
         data_O = [];
-        regulated_entities_proteins_O = [];
-        regulated_entities_enzymaticReactions_O = [];
-        regulated_entities_polymerSegments1_O = [];
-        regulated_entities_polymerSegments2_O = [];
-        regulators_compounds_O = [];
-        regulators_proteins_O = [];
-        regulators_RNAs_O = [];
+        regulation_1 = {};
         #get regulators and regulated entities
         regulation = self.get_rows_databaseAndNotNull_modelsBioCycRegulation(
             database_I=database_I,
@@ -2226,53 +2220,72 @@ class models_BioCyc_query(sbaas_template_query):
             dictColumn_I=dictColumn_I
             );
         for reg in regulation:
+            if reg['regulator']=='' and reg['regulated_entity']=='':continue;
+            #remove keeys
+            for key in list(reg.keys())[:]:
+                if key not in ['mode','regulator','regulated_entity','mechanism','name']:
+                    del reg[key];
+            #add in keys to fill
+            reg.update({
+                'regulated_entity_gene':'',
+                'regulated_entity_enzymaticReaction':'',
+                'regulated_entity_promoter':'',
+                'regulated_entity_product':'',
+                'regulator_gene':'',
+                'regulator_protein':'',
+                'regulator_RNA':'',
+                'regulator_compound':''})
+            unique1 = (reg['regulator'],reg['regulated_entity'],
+                       reg['mode'],reg['mechanism'],reg['name'])
+            if not unique1 in regulation_1.keys():
+                regulation_1[unique1]=[];
             #lookup the regulated_entities
             regulated_entities_proteins = self.get_rows_nameAndDatabase_modelsBioCycProteins(
                 name_I = reg['regulated_entity'],
                 database_I = database_I)
             for reps in regulated_entities_proteins:
-                genes = self.convert_bioCycList2List(reps['name']);
+                genes = dependencies.convert_bioCycList2List(reps['name']);
                 for gene in genes:
                     #parse out genes and proteins
                     tmp = copy.copy(reg);
                     tmp['regulated_entity_protein'] = reps['name'];
                     tmp['regulated_entity_gene'] = gene;
-                    regulated_entities_proteins_O.append(tmp);
+                    regulation_1[unique1].append(tmp);
             regulated_entities_enzymaticReactions = self.get_rows_nameAndDatabase_modelsBioCycEnzymaticReactions(
                 name_I = reg['regulated_entity'],
                 database_I = database_I)
             for reps in regulated_entities_enzymaticReactions:
-                genes = self.convert_bioCycList2List(reps['name']);
+                genes = dependencies.convert_bioCycList2List(reps['name']);
                 for gene in genes:
                     #parse out genes and proteins
                     tmp = copy.copy(reg);
                     tmp['regulated_entity_enzymaticReaction'] = reps['name'];
                     tmp['regulated_entity_gene'] = gene;
-                    regulated_entities_enzymaticReactions_O.append(tmp);
+                    regulation_1[unique1].append(tmp);
             regulated_entities_polymerSegments = self.get_rows_nameAndDatabase_modelsBioCycPolymerSegments(
                 name_I = reg['regulated_entity'],
                 database_I = database_I)
             for reps in regulated_entities_polymerSegments:
-                products = self.convert_bioCycList2List(reps['products'])
+                products = dependencies.convert_bioCycList2List(reps['product'])
                 for product in products:
                     #gene/promoter
                     #parse out the products
                     tmp = copy.copy(reg);
                     tmp['regulated_entity_gene'] = reps['name'];
-                    tmp['regulated_entity_products'] = product;
-                    regulated_entities_polymerSegments1_O.append(tmp);
+                    tmp['regulated_entity_product'] = product;
+                    regulation_1[unique1].append(tmp);
             regulated_entities_polymerSegments = self.get_rows_componentsAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
                 components_I = reg['regulated_entity'],
                 database_I = database_I)
             for reps in regulated_entities_polymerSegments:
-                genes = self.parse_transcriptionUnit(reps['name']);
+                genes = dependencies.parse_transcriptionUnit(reps['name']);
                 for gene in genes:
                     #gene/promoter
                     #parse out transcription units then genes
                     tmp = copy.copy(reg);
                     tmp['regulated_entity_promoter'] = reps['name'];
                     tmp['regulated_entity_gene'] = gene;
-                    regulated_entities_polymerSegments2_O.append(tmp);
+                    regulation_1[unique1].append(tmp);
             #lookup the regulators
             regulators_compounds = self.get_rows_nameAndDatabase_modelsBioCycCompounds(
                 name_I = reg['regulator'],
@@ -2280,49 +2293,61 @@ class models_BioCyc_query(sbaas_template_query):
             for regs in regulators_compounds:
                 tmp = copy.copy(reg);
                 tmp['regulator_compound'] = regs['name'];
-                regulators_compounds_O.append(tmp);
+                regulation_1[unique1].append(tmp);
             regulators_proteins = self.get_rows_nameAndDatabase_modelsBioCycProteins(
                 name_I = reg['regulator'],
                 database_I = database_I)
             for regs in regulators_proteins:
-                genes = self.convert_bioCycList2List(regs['name']);
+                genes = dependencies.convert_bioCycList2List(regs['name']);
                 for gene in genes:
                     #parse out genes and proteins
                     tmp = copy.copy(reg);
                     tmp['regulator_protein'] = regs['name'];
                     tmp['regulator_gene'] = gene;
-                    regulators_proteins_O.append(tmp);
+                    regulation_1[unique1].append(tmp);
             regulators_RNAs = self.get_rows_nameAndDatabase_modelsBioCycRNAs(
                 name_I = reg['regulator'],
                 database_I = database_I)
             for regs in regulators_RNAs:
-                genes = self.convert_bioCycList2List(regs['name']);
+                genes = dependencies.convert_bioCycList2List(regs['name']);
                 for gene in genes:
                     #parse out genes and rans
                     tmp = copy.copy(reg);
                     tmp['regulator_RNA'] = regs['name'];
                     tmp['regulator_gene'] = gene;
-                    regulators_RNAs_O.append(tmp);
+                    regulation_1[unique1].append(tmp);
             #lookup the names (alternative to regulators)
             #models_biocyc_proteins.regulates LIKE '%"[]"%' -> models_biocyc_proteins.gene (parse string list)
             #models_biocyc_RNAs.regulates LIKE '%"[]"%' -> models_biocyc_RNAs.gene (parse string list)
             #models_biocyc_compounds.regulates LIKE 'u%"[]"%' -> models_biocyc_compounds.name            
 
-        #combine all lists into a list
-        for reg in regulation:
-            reg_O = [];
-            for regent in regulated_entities_proteins_O:
-                tmp = copy.copy(reg);
-                tmp['regulated_entity_protein'] = reps['name'];
-                tmp['regulated_entity_gene'] = gene;
-                reg_O.append(tmp);
-            for rO in reg_O:
-                for regent in regulated_entities_enzymaticReactions_O:
-                    if rO['gene']==regent['gene']:
-                        rO['regulated_entity_enzymaticReaction'] = regent['regulated_entity_enzymaticReaction']
-            regulated_entities_enzymaticReactions_O = [];
-            regulated_entities_polymerSegments1_O = [];
-            regulated_entities_polymerSegments2_O = [];
+        #fill all entries for each unique key
+        regulation_O = {};
+        for unique,rows in regulation_1.keys():
+            for row1_cnt,row1 in enumerate(rows):
+                for row2_cnt,row2 in enumerate(rows[row2_cnt+1:]):
+                    keys1 = [k for k,v in row1.items() if v!=''];
+                    keys2 = [k for k,v in row2.items() if v!=''];
+                    unique1 = tuple([row1[k] for k in keys1])
+                    unique2 = tuple([row2[k] for k in keys2])
+                    unique12 = tuple([row1[k] for k in keys2])
+                    unique21 = tuple([row2[k] for k in keys1])
+                    if unique1==unique2: #duplicate
+                        pass;
+                    elif len(keys1)>len(keys2) and unique2==unique12: #remove 2
+                        pass
+                    elif len(keys2)>len(keys1):
+            #unique2 = [reg['regulated_entity_gene'],reg['regulated_entity_enzymaticReaction'],
+            #           reg['regulated_entity_promoter'],reg['regulated_entity_products'],
+            #           reg['regulator_gene'],reg['regulator_protein'],
+            #           reg['regulator_RNA'],reg['regulator_compound']]
+            #unique1 = [tmp['regulator'],tmp['regulated_entity'],
+            #           tmp['mode'],tmp['mechanism'],tmp['name'],
+            #           tmp['regulated_entity_gene'],tmp['regulated_entity_enzymaticReaction'],
+            #           tmp['regulated_entity_promoter'],tmp['regulated_entity_products'],
+            #           tmp['regulator_gene'],tmp['regulator_protein'],
+            #           tmp['regulator_RNA'],tmp['regulator_compound']]
+            
         #remove duplicate entries
         #(NOTE: only works because each dictionary is constructed identically)
         data_O = [];
