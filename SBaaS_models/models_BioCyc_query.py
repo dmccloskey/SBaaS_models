@@ -2337,6 +2337,7 @@ class models_BioCyc_query(sbaas_template_query):
                     elif len(keys1)>len(keys2) and unique2==unique12: #remove 2
                         pass
                     elif len(keys2)>len(keys1):
+                        pass
             #unique2 = [reg['regulated_entity_gene'],reg['regulated_entity_enzymaticReaction'],
             #           reg['regulated_entity_promoter'],reg['regulated_entity_products'],
             #           reg['regulator_gene'],reg['regulator_protein'],
