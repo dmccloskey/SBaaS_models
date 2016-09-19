@@ -2221,7 +2221,7 @@ class models_BioCyc_query(sbaas_template_query):
             );
         for reg in regulation:
             if reg['regulator']=='' and reg['regulated_entity']=='':continue;
-            #remove keeys
+            #remove keys
             for key in list(reg.keys())[:]:
                 if key not in ['mode','regulator','regulated_entity','mechanism','name']:
                     del reg[key];
@@ -2321,7 +2321,7 @@ class models_BioCyc_query(sbaas_template_query):
             #models_biocyc_RNAs.regulates LIKE '%"[]"%' -> models_biocyc_RNAs.gene (parse string list)
             #models_biocyc_compounds.regulates LIKE 'u%"[]"%' -> models_biocyc_compounds.name            
 
-        #fill all entries for each unique key
+        #create an innner join 
         regulation_O = {};
         for unique,rows in regulation_1.keys():
             for row1_cnt,row1 in enumerate(rows):

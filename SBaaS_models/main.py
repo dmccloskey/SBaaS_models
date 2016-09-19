@@ -74,18 +74,18 @@ biocyc01.initialize_tables()
 
 #biocyc01.export_GOTermGenes_js('GO:0046034','ECOLI');
 
-table1 = [{'age':27, 'person':"Jonah"},
-          {'age':18, 'person':"Alan"},
-          {'age':28, 'person':"Glory"},
-          {'age':18, 'person':"Popeye"},
-          {'age':28, 'person':"Alan"}]
-table2 = [{'person':"Jonah", 'book':"Whales"},
-          {'person':"Jonah", 'book':"Spiders"},
-          {'person':"Alan", 'book':"Ghosts"},
-          {'person':"Alan", 'book':"Zombies"},
-          {'person':"Glory", 'book':"Buffy"}]
+#table1 = [{'age':27, 'person':"Jonah"},
+#          {'age':18, 'person':"Alan"},
+#          {'age':28, 'person':"Glory"},
+#          {'age':18, 'person':"Popeye"},
+#          {'age':28, 'person':"Alan"}]
+#table2 = [{'person':"Jonah", 'book':"Whales"},
+#          {'person':"Jonah", 'book':"Spiders"},
+#          {'person':"Alan", 'book':"Ghosts"},
+#          {'person':"Alan", 'book':"Zombies"},
+#          {'person':"Glory", 'book':"Buffy"}]
 		  
-table3 = biocyc01.hashJoin(table1, 'person', table2, 'person');
+#table3 = biocyc01.hashJoin(table1, 'person', table2, 'person');
 
 #table1 = [(27, "Jonah"),
 #            (18, "Alan"),
