@@ -446,6 +446,76 @@ class models_COBRA_query(sbaas_template_query):
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
+    def get_rows_modelIDAndOrderedLocusNames_dataStage02PhysiologyModelReactions(
+        self,model_id_I,ordered_locus_names_I,
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''Query rxn_ids by model_id and ordered locus name that are used'''
+        
+        tables = ['data_stage02_physiology_modelReactions']
+        names_str = self.convert_list2string(ordered_locus_names_I);
+        names = "('{%s}'::character varying[])" %names_str;
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'model_id',
+            'value':model_id_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'genes',
+            'value':names,
+            'operator':'<@',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'genes',
+            'value':'{}',
+            'operator':'!=',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'rxn_id',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def getParsed_rxnIDs_modelIDAndOrderedLocusNames_dataStage02PhysiologyModelReactions(
+        self,model_id_I,ordered_locus_names_I,
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        ''' '''
+        data = self.get_rows_modelIDAndOrderedLocusNames_dataStage02PhysiologyModelReactions(
+            model_id_I,ordered_locus_names_I,
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None);
+        rxnIDs_O = [d['rxn_id'] for d in data];
+        return rxnIDs_O;
 
     ## Query from data_stage02_physiology_modelMetabolites
     # query formula from data_stage02_physiology_modelMetabolites

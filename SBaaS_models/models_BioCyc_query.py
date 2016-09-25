@@ -25,6 +25,176 @@ class models_BioCyc_query(sbaas_template_query):
         }
         self.set_supportedTables(tables_supported)
 
+    
+    #models_biocyc_pathways
+    def get_rows_superPathwayAndDatabase_modelsBioCycPathways(
+        self,super_pathway_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_pathways
+        WHERE super_pathway LIKE '''
+        
+        tables = ['models_biocyc_pathways']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        super_pathway_where = '("%s")' %(super_pathway_I)
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'super_pathways',
+            'value':super_pathway_where,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'genes_of_pathway',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_nameAndDatabase_modelsBioCycPathways(
+        self,name_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_pathways
+        WHERE super_pathway LIKE '''
+        
+        tables = ['models_biocyc_pathways']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':name_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'genes_of_pathway',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_namesAndDatabase_modelsBioCycPathways(
+        self,names_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_pathways
+        WHERE super_pathway LIKE '''
+        
+        tables = ['models_biocyc_pathways']
+        
+        names_str = self.convert_list2string(names_I);
+        names = "('{%s}'::text[])" %names_str;
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':names,
+            'operator':'=ANY',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'genes_of_pathway',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+
     #models_biocyc_proteins
     def get_genesAndNamesAndComponentOfs_GOTermAndDatabase_modelsBioCycProteins(
         self,go_term_I,database_I='ECOLI',
@@ -1132,6 +1302,65 @@ class models_BioCyc_query(sbaas_template_query):
             'column_name':'name',
             'value':name_I,
             'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'parent_classes',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_namesAndDatabase_modelsBioCycPolymerSegments(
+        self,
+        names_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_polymerSegments
+        WHERE name LIKE '''
+        
+        tables = ['models_biocyc_polymerSegments']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+        
+        names_str = self.convert_list2string(names_I);
+        names = "('{%s}'::text[])" %names_str;
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':names,
+            'operator':'=ANY',
             'connector':'AND'
                 },
             {"table_name":tables[0],
@@ -2359,6 +2588,131 @@ class models_BioCyc_query(sbaas_template_query):
         return data_O;
     
     #Parsed queries only
+    def getParsed_genesAndPathwaysAndReactions_superPathwayAndDatabase_modelsBioCycPathways(
+        self,super_pathway_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT models_biocyc_protein.genes_of_pathway,
+        models_biocyc_pathways.name,
+        models_biocyc_pathways.primaries
+        FROM models_biocyc_pathways
+        WHERE models_biocyc_pathways.super_pathway LIKE
+        AND models_biocyc_pathways.database LIKE '''
+
+        dependencies = models_BioCyc_dependencies();
+
+        data_O = [];
+        biocyc_pathways = self.get_rows_superPathwayAndDatabase_modelsBioCycPathways(
+            super_pathway_I,database_I='ECOLI',
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None);
+        for pathway in biocyc_pathways:
+            genes = dependencies.convert_bioCycList2List(pathway['genes_of_pathway']);
+            for gene in genes:
+                tmp = {};
+                tmp['pathway'] = pathway['name'];
+                tmp['primaries'] = pathway['primaries'];
+                tmp['gene'] = gene;
+                data_O.append(tmp);
+        return data_O;
+    
+    def getParsed_genesAndPathwaysAndReactions_namesAndDatabase_modelsBioCycPathways(
+        self,names_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT models_biocyc_protein.genes_of_pathway,
+        models_biocyc_pathways.name,
+        models_biocyc_pathways.primaries
+        FROM models_biocyc_pathways
+        WHERE models_biocyc_pathways.name =ANY
+        AND models_biocyc_pathways.database LIKE '''
+
+        dependencies = models_BioCyc_dependencies();
+
+        data_O = [];
+        biocyc_pathways = self.get_rows_namesAndDatabase_modelsBioCycPathways(
+            names_I,database_I='ECOLI',
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None);
+        for pathway in biocyc_pathways:
+            genes = dependencies.convert_bioCycList2List(pathway['genes_of_pathway']);
+            for gene in genes:
+                tmp = {};
+                tmp['pathway'] = pathway['name'];
+                tmp['primaries'] = pathway['primaries'];
+                tmp['gene'] = gene;
+                data_O.append(tmp);
+            #if genes and genes[0]!='':
+            #    for gene in genes:
+            #        tmp = {};
+            #        tmp['pathway'] = pathway['name'];
+            #        tmp['primaries'] = pathway['primaries'];
+            #        tmp['gene'] = gene;
+            #        data_O.append(tmp);
+            #else:
+            #    tmp = {};
+            #    tmp['pathway'] = pathway['name'];
+            #    tmp['primaries'] = pathway['primaries'];
+            #    tmp['gene'] = None;
+            #    data_O.append(tmp);
+        return data_O;
+    
+    def getParsed_genesAndAccessionsAndSynonyms_namesAndDatabase_modelsBioCycPolymerSegments(
+        self,names_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT models_biocyc_polymerSegments.name,
+        models_biocyc_polymerSegments.common_name,
+        models_biocyc_polymerSegments.accession_1,
+        models_biocyc_polymerSegments.synonyms
+        FROM models_biocyc_polymerSegments
+        WHERE models_biocyc_polymerSegments.name =ANY
+        AND models_biocyc_polymerSegments.database LIKE '''
+
+        dependencies = models_BioCyc_dependencies();
+
+        data_O = [];
+        biocyc_polymerSegments = self.get_rows_namesAndDatabase_modelsBioCycPolymerSegments(
+            names_I,database_I='ECOLI',
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None);
+        for polymerSegment in biocyc_polymerSegments:
+            if not polymerSegment['accession_1']: continue;
+            synonyms = dependencies.convert_bioCycList2List(polymerSegment['synonyms']);
+            for synonym in synonyms:
+                tmp = {};
+                tmp['gene'] = polymerSegment['name'];
+                tmp['common_name'] = polymerSegment['common_name'];
+                tmp['accession_1'] = polymerSegment['accession_1'];
+                tmp['accession_2'] = polymerSegment['accession_2'];
+                tmp['synonym'] = synonym;
+                data_O.append(tmp);
+            #if synonyms and synonyms[0]!='':
+            #    for synonym in synonyms:
+            #        tmp = {};
+            #        tmp['gene'] = polymerSegment['name'];
+            #        tmp['common_name'] = polymerSegment['common_name'];
+            #        tmp['accession_1'] = polymerSegment['accession_1'];
+            #        tmp['accession_2'] = polymerSegment['accession_2'];
+            #        tmp['synonym'] = synonym;
+            #        data_O.append(tmp);
+            #else:
+            #    tmp = {};
+            #    tmp['gene'] = polymerSegment['name'];
+            #    tmp['common_name'] = polymerSegment['common_name'];
+            #    tmp['accession_1'] = polymerSegment['accession_1'];
+            #    tmp['accession_2'] = polymerSegment['accession_2'];
+            #    tmp['synonym'] = [];
+            #    data_O.append(tmp);
+
+        return data_O;
+
     def getParsed_genesAndNames_GOTermAndDatabase_modelsBioCycProteins(
         self,go_term_I,database_I='ECOLI',
         query_I={},
