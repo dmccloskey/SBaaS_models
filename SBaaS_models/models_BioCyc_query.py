@@ -2548,44 +2548,19 @@ class models_BioCyc_query(sbaas_template_query):
             #lookup the names (alternative to regulators)
             #models_biocyc_proteins.regulates LIKE '%"[]"%' -> models_biocyc_proteins.gene (parse string list)
             #models_biocyc_RNAs.regulates LIKE '%"[]"%' -> models_biocyc_RNAs.gene (parse string list)
-            #models_biocyc_compounds.regulates LIKE 'u%"[]"%' -> models_biocyc_compounds.name            
-
-        #create an innner join 
-        regulation_O = {};
-        for unique,rows in regulation_1.keys():
-            for row1_cnt,row1 in enumerate(rows):
-                for row2_cnt,row2 in enumerate(rows[row2_cnt+1:]):
-                    keys1 = [k for k,v in row1.items() if v!=''];
-                    keys2 = [k for k,v in row2.items() if v!=''];
-                    unique1 = tuple([row1[k] for k in keys1])
-                    unique2 = tuple([row2[k] for k in keys2])
-                    unique12 = tuple([row1[k] for k in keys2])
-                    unique21 = tuple([row2[k] for k in keys1])
-                    if unique1==unique2: #duplicate
-                        pass;
-                    elif len(keys1)>len(keys2) and unique2==unique12: #remove 2
-                        pass
-                    elif len(keys2)>len(keys1):
-                        pass
-            #unique2 = [reg['regulated_entity_gene'],reg['regulated_entity_enzymaticReaction'],
-            #           reg['regulated_entity_promoter'],reg['regulated_entity_products'],
-            #           reg['regulator_gene'],reg['regulator_protein'],
-            #           reg['regulator_RNA'],reg['regulator_compound']]
-            #unique1 = [tmp['regulator'],tmp['regulated_entity'],
-            #           tmp['mode'],tmp['mechanism'],tmp['name'],
-            #           tmp['regulated_entity_gene'],tmp['regulated_entity_enzymaticReaction'],
-            #           tmp['regulated_entity_promoter'],tmp['regulated_entity_products'],
-            #           tmp['regulator_gene'],tmp['regulator_protein'],
-            #           tmp['regulator_RNA'],tmp['regulator_compound']]
+            #models_biocyc_compounds.regulates LIKE 'u%"[]"%' -> models_biocyc_compounds.name      
             
         #remove duplicate entries
         #(NOTE: only works because each dictionary is constructed identically)
-        data_O = [];
-        for row in biocyc_features:
-            if not row in data_O:
-                data_O.append(row);
+        regulation_O = {};
+        for k,v in regulation_1.items():
+            if not k in regulation_O.keys():
+                regulation_O[k]=[];
+            for row in v:
+                if not row in regulation_O[k]:
+                    regulation_O[k].append(row);
 
-        return data_O;
+        return regulation_O;
     
     #Parsed queries only
     def getParsed_genesAndPathwaysAndReactions_superPathwayAndDatabase_modelsBioCycPathways(
