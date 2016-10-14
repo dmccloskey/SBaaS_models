@@ -52,15 +52,22 @@ class models_BioCyc_dependencies():
 
         components_lst = self.convert_bioCycList2List(components_I);
         regulated_entity = None;
+        for component in components_lst:
+            if self.check_promoter(component):
+                regulated_entity = component;
+        return regulated_entity;
+
+    def check_promoter(self,component_I):
+        ''' '''
+        promoter_O=False;
         patterns = ['[a-z][a-z][a-z][A-Z]p[0-9]',
                    '[a-z][a-z][a-z][A-Z]p',
                    '[a-z][a-z][a-z]p']
-        for component in components_lst:
-            for pattern in patterns:
-                if not re.match(pattern,component) is None:
-                    regulated_entity = component;
-                    break;
-        return regulated_entity;
+        for pattern in patterns:
+            if not re.match(pattern,component_I) is None:
+                promoter_O=True;
+                break;
+        return promoter_O;
 
     def parse_transcriptionUnit(self,tu_I):
         '''Parse a TU string into individual genes

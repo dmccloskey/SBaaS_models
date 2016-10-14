@@ -2584,10 +2584,7 @@ class models_BioCyc_query(sbaas_template_query):
             for k1,v1 in v.items():
                 #remove non-valid gene ids
                 if type(v1)==type([]) and k1=='regulated_entity_gene':
-                    tmp = [];
-                    for r in v1[:]:
-                        r = dependencies.extract_regulatedEntityFromComponents(r);
-                        tmp.append(r);
+                    tmp = [r for r in v1 if not dependencies.check_promoter(r)];
                     v1 = tmp;
                 #remove duplicates in the list
                 if type(v1)==type([]):
