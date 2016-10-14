@@ -39,22 +39,6 @@ class models_COBRA_query(sbaas_template_query):
                     print(e);
             self.session.commit();
 
-    def add_dataStage02PhysiologyModels(self, data_I):
-        '''add rows of data_stage02_physiology_models'''
-        if data_I:
-            for d in data_I:
-                try:
-                    data_add = data_stage02_physiology_models(d['model_id'],
-                        d['model_name'],
-                        d['model_description'],
-                            d['model_file'],
-                            d['file_type'],
-                        d['date']);
-                    self.session.add(data_add);
-                except SQLAlchemyError as e:
-                    print(e);
-            self.session.commit();
-
     def update_dataStage02PhysiologyModels(self,data_I):
         #Not yet tested
         '''update rows of data_stage02_physiology_models'''
@@ -74,34 +58,6 @@ class models_COBRA_query(sbaas_template_query):
                     print(e);
             self.session.commit();
 
-    def add_dataStage02PhysiologyModelReactions(self, data_I):
-        '''add rows of data_stage02_physiology_modelReactions'''
-        if data_I:
-            for d in data_I:
-                try:
-                    data_add = data_stage02_physiology_modelReactions(d['model_id'],
-                            d['rxn_id'],
-                            d['rxn_name'],
-                            d['equation'],
-                            d['subsystem'],
-                            d['gpr'],
-                            d['genes'],
-                            d['reactants_stoichiometry'],
-                            d['products_stoichiometry'],
-                            d['reactants_ids'],
-                            d['products_ids'],
-                            d['lower_bound'],
-                            d['upper_bound'],
-                            d['objective_coefficient'],
-                            d['flux_units'],
-                            d['reversibility'],
-                            d['used_'],
-                            d['comment_']);
-                    self.session.add(data_add);
-                except SQLAlchemyError as e:
-                    print(e);
-            self.session.commit();
-
     def update_dataStage02PhysiologyModelReactions(self,data_I):
         #Not yet tested
         '''update rows of data_stage02_physiology_modelReactions'''
@@ -109,7 +65,8 @@ class models_COBRA_query(sbaas_template_query):
             for d in data_I:
                 try:
                     data_update = self.session.query(data_stage02_physiology_modelReactions).filter(
-                            data_stage02_physiology_modelReactions.id.like(d['id'])).update(
+                            data_stage02_physiology_modelReactions.model_id.like(d['model_id']),
+                            data_stage02_physiology_modelReactions.rxn_id.like(d['rxn_id'])).update(
                             {'model_id':d['model_id'],
                                 'rxn_id':d['rxn_id'],
                                 'rxn_name':d['rxn_name'],
@@ -132,23 +89,18 @@ class models_COBRA_query(sbaas_template_query):
                 except SQLAlchemyError as e:
                     print(e);
             self.session.commit();
-
-    def add_dataStage02PhysiologyModelMetabolites(self, data_I):
-        '''add rows of data_stage02_physiology_modelMetabolites'''
+    def update_databaseLinks_dataStage02PhysiologyModelReactions(self,data_I):
+        #Not yet tested
+        '''update rows of data_stage02_physiology_modelReactions'''
         if data_I:
             for d in data_I:
                 try:
-                    data_add = data_stage02_physiology_modelMetabolites(d['model_id'],
-                        d['met_name'],
-                        d['met_id'],
-                        d['formula'],
-                        d['charge'],
-                        d['compartment'],
-                        d['bound'],
-                        d['constraint_sense'],
-                        d['used_'],
-                        d['comment_']);
-                    self.session.add(data_add);
+                    data_update = self.session.query(data_stage02_physiology_modelReactions).filter(
+                            data_stage02_physiology_modelReactions.model_id.like(d['model_id']),
+                            data_stage02_physiology_modelReactions.rxn_id.like(d['rxn_id'])).update(
+                            {'database_links':d['database_links'],
+                             },
+                            synchronize_session=False);
                 except SQLAlchemyError as e:
                     print(e);
             self.session.commit();
@@ -159,7 +111,8 @@ class models_COBRA_query(sbaas_template_query):
             for d in data_I:
                 try:
                     data_update = self.session.query(data_stage02_physiology_modelMetabolites).filter(
-                            data_stage02_physiology_modelMetabolites.id.like(d['id'])).update(
+                            data_stage02_physiology_modelMetabolites.model_id.like(d['model_id']),
+                            data_stage02_physiology_modelMetabolites.met_id.like(d['met_id'])).update(
                             {'model_id':d['model_id'],
                                 'met_name':d['met_name'],
                                 'met_id':d['met_id'],
@@ -170,6 +123,19 @@ class models_COBRA_query(sbaas_template_query):
                                 'constraint_sense':d['constraint_sense'],
                                 'used_':d['used_'],
                                 'comment_':d['comment_']},
+                            synchronize_session=False);
+                except SQLAlchemyError as e:
+                    print(e);
+            self.session.commit();
+    def update_databaseLinks_dataStage02PhysiologyModelMetabolites(self,data_I):
+        '''update rows of data_stage02_physiology_modelMetabolites'''
+        if data_I:
+            for d in data_I:
+                try:
+                    data_update = self.session.query(data_stage02_physiology_modelMetabolites).filter(
+                            data_stage02_physiology_modelMetabolites.model_id.like(d['model_id']),
+                            data_stage02_physiology_modelMetabolites.met_id.like(d['met_id'])).update(
+                            {'database_links':d['database_links'],},
                             synchronize_session=False);
                 except SQLAlchemyError as e:
                     print(e);
@@ -187,13 +153,7 @@ class models_COBRA_query(sbaas_template_query):
                 print('multiple rows retrieved!');
             if data: 
                 for d in data:
-                    row_tmp = {'model_id':d.model_id,
-                                'model_name':d.model_name,
-                                'model_description':d.model_description,
-                                'model_file':d.model_file,
-                                'file_type':d.file_type,
-                                'date':d.date};
-                    rows_O.update(row_tmp);
+                    rows_O.update(d.__repr__dict__());
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
@@ -210,27 +170,7 @@ class models_COBRA_query(sbaas_template_query):
                     data_stage02_physiology_modelReactions.used_.is_(True)).order_by(
                     data_stage02_physiology_modelReactions.model_id.asc(),
                     data_stage02_physiology_modelReactions.rxn_id.asc()).all();
-            rows_O = [];
-            if data: 
-                for d in data:
-                    row_tmp = {'model_id':d.model_id,
-                            'rxn_id':d.rxn_id,
-                            'equation':d.equation,
-                            'subsystem':d.subsystem,
-                            'gpr':d.gpr,
-                            'genes':d.genes,
-                            'reactants_stoichiometry':d.reactants_stoichiometry,
-                            'products_stoichiometry':d.products_stoichiometry,
-                            'reactants_ids':d.reactants_ids,
-                            'products_ids':d.products_ids,
-                            'lower_bound':d.lower_bound,
-                            'upper_bound':d.upper_bound,
-                            'objective_coefficient':d.objective_coefficient,
-                            'flux_units':d.flux_units,
-                            'reversibility':d.reversibility,
-                            'used_':d.used_,
-                            'comment_':d.comment_};
-                    rows_O.append(row_tmp);
+            rows_O = [d.__repr__dict__() for d in data];
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
@@ -248,23 +188,7 @@ class models_COBRA_query(sbaas_template_query):
                 print('more than 1 reaction found!');
             if data: 
                 for d in data:
-                    row_O = {'model_id':d.model_id,
-                            'rxn_id':d.rxn_id,
-                            'equation':d.equation,
-                            'subsystem':d.subsystem,
-                            'gpr':d.gpr,
-                            'genes':d.genes,
-                            'reactants_stoichiometry':d.reactants_stoichiometry,
-                            'products_stoichiometry':d.products_stoichiometry,
-                            'reactants_ids':d.reactants_ids,
-                            'products_ids':d.products_ids,
-                            'lower_bound':d.lower_bound,
-                            'upper_bound':d.upper_bound,
-                            'objective_coefficient':d.objective_coefficient,
-                            'flux_units':d.flux_units,
-                            'reversibility':d.reversibility,
-                            'used_':d.used_,
-                            'comment_':d.comment_};
+                    row_O = d.__repr__dict__();
             return row_O;
         except SQLAlchemyError as e:
             print(e);
@@ -277,27 +201,7 @@ class models_COBRA_query(sbaas_template_query):
                     data_stage02_physiology_modelReactions.used_.is_(True)).order_by(
                     data_stage02_physiology_modelReactions.model_id.asc(),
                     data_stage02_physiology_modelReactions.rxn_id.asc()).all();
-            rows_O = [];
-            if data: 
-                for d in data:
-                    row_tmp = {'model_id':d.model_id,
-                            'rxn_id':d.rxn_id,
-                            'equation':d.equation,
-                            'subsystem':d.subsystem,
-                            'gpr':d.gpr,
-                            'genes':d.genes,
-                            'reactants_stoichiometry':d.reactants_stoichiometry,
-                            'products_stoichiometry':d.products_stoichiometry,
-                            'reactants_ids':d.reactants_ids,
-                            'products_ids':d.products_ids,
-                            'lower_bound':d.lower_bound,
-                            'upper_bound':d.upper_bound,
-                            'objective_coefficient':d.objective_coefficient,
-                            'flux_units':d.flux_units,
-                            'reversibility':d.reversibility,
-                            'used_':d.used_,
-                            'comment_':d.comment_};
-                    rows_O.append(row_tmp);
+            rows_O = [d.__repr__dict__() for d in data];
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
@@ -546,20 +450,7 @@ class models_COBRA_query(sbaas_template_query):
                     data_stage02_physiology_modelMetabolites.used_.is_(True)).order_by(
                     data_stage02_physiology_modelMetabolites.model_id.asc(),
                     data_stage02_physiology_modelMetabolites.met_id.asc()).all();
-            rows_O = [];
-            if data: 
-                for d in data:
-                    row_tmp = {'model_id':d.model_id,
-                            'met_name':d.met_name,
-                            'met_id':d.met_id,
-                            'formula':d.formula,
-                            'charge':d.charge,
-                            'bound':d.bound,
-                            'constraint_sense':d.constraint_sense,
-                            'compartment':d.compartment,
-                            'used_':d.used_,
-                            'comment_':d.comment_};
-                    rows_O.append(row_tmp);
+            rows_O = [d.__repr__dict__() for d in data];
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
@@ -577,16 +468,7 @@ class models_COBRA_query(sbaas_template_query):
                 print('more than 1 model_id/met_id found!')
             if data: 
                 for d in data:
-                    rows_O = {'model_id':d.model_id,
-                            'met_name':d.met_name,
-                            'met_id':d.met_id,
-                            'formula':d.formula,
-                            'charge':d.charge,
-                            'bound':d.bound,
-                            'constraint_sense':d.constraint_sense,
-                            'compartment':d.compartment,
-                            'used_':d.used_,
-                            'comment_':d.comment_};
+                    rows_O = d.__repr__dict__();
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
