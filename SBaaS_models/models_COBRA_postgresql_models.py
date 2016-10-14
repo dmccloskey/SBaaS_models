@@ -1,4 +1,4 @@
-#sbaas
+﻿#sbaas
 from SBaaS_base.postgresql_orm_base import *
 
 #models_lumpedRxns
@@ -86,6 +86,7 @@ class data_stage02_physiology_modelReactions(Base):
     objective_coefficient = Column(Float)
     flux_units = Column(String(50))
     reversibility = Column(Boolean)
+    database_links = Column(postgresql.JSON)
     used_ = Column(Boolean)
     comment_ = Column(Text);
 
@@ -113,6 +114,7 @@ class data_stage02_physiology_modelReactions(Base):
         self.rxn_name=row_dict_I['rxn_name'];
         self.rxn_id=row_dict_I['rxn_id'];
         self.model_id=row_dict_I['model_id'];
+        self.database_links=row_dict_I['database_links'];
 
     def __set__row__(self,model_id_I,
             rxn_id_I,
@@ -130,6 +132,7 @@ class data_stage02_physiology_modelReactions(Base):
             objective_coefficient_I,
             flux_units_I,
             reversibility_I,
+            database_links_I,
             used__I,
             comment__I):
         self.model_id=model_id_I
@@ -147,6 +150,7 @@ class data_stage02_physiology_modelReactions(Base):
         self.upper_bound=upper_bound_I
         self.objective_coefficient=objective_coefficient_I
         self.reversibility=reversibility_I
+        self.database_links=database_links_I
         self.used_=used__I
         self.comment_=comment__I
 
@@ -168,6 +172,7 @@ class data_stage02_physiology_modelReactions(Base):
             'objective_coefficient':self.objective_coefficient,
             'flux_units':self.flux_units,
             'reversibility':self.reversibility,
+            'database_links':self.database_links,
             'used_':self.used_,
             'comment_':self.comment_}
     
@@ -185,6 +190,7 @@ class data_stage02_physiology_modelMetabolites(Base):
     compartment = Column(String(50))
     bound = Column(Float)
     constraint_sense = Column(String(5))
+    database_links = Column(postgresql.JSON)
     used_ = Column(Boolean);
     comment_ = Column(Text);
 
@@ -204,6 +210,7 @@ class data_stage02_physiology_modelMetabolites(Base):
         self.used_=row_dict_I['used_'];
         self.constraint_sense=row_dict_I['constraint_sense'];
         self.bound=row_dict_I['bound'];
+        self.database_links=row_dict_I['database_links'];
 
     def __set__row__(self,model_id_I,
             met_name_I,
@@ -213,6 +220,7 @@ class data_stage02_physiology_modelMetabolites(Base):
             compartment_I,
             bound_I,
             constraint_sense_I,
+            database_links_I,
             used__I,
             comment__I):
         self.model_id=model_id_I
@@ -223,6 +231,7 @@ class data_stage02_physiology_modelMetabolites(Base):
         self.compartment=compartment_I
         self.bound=bound_I
         self.constraint_sense=constraint_sense_I
+        self.database_links=database_links_I
         self.used_=used__I
         self.comment_=comment__I
 
@@ -236,6 +245,7 @@ class data_stage02_physiology_modelMetabolites(Base):
                 'bound':self.bound,
                 'constraint_sense':self.constraint_sense,
                 'compartment':self.compartment,
+                'database_links':self.database_links,
                 'used_':self.used_,
                 'comment_':self.comment_}
     
