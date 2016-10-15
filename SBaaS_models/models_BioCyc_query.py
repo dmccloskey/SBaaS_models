@@ -1701,6 +1701,182 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
+    def get_rows_commonNamesAndDatabase_modelsBioCycReactions(
+        self,common_names_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_reactions
+        WHERE common_name =ANY 
+        
+        INPUT:
+        common_names_I = string or list
+        database_I
+        ...
+        '''
+        
+        tables = ['models_biocyc_reactions']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+        
+        common_names_str = ','.join(common_names_I);
+        common_names = "('{%s}::text[])" %(common_names_str);
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'common_name',
+            'value':common_names,
+            'operator':'=ANY',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'common_name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_commonNameAndDatabase_modelsBioCycReactions(
+        self,common_name_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_reactions
+        WHERE common_name LIKE 
+        
+        INPUT:
+        common_name_I = string
+        database_I
+        ...
+        '''
+        
+        tables = ['models_biocyc_reactions']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'common_name',
+            'value':common_name_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'common_name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_enzymaticReactionAndDatabase_modelsBioCycReactions(
+        self,enzymatic_reaction_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_reactions
+        WHERE common_name LIKE 
+        
+        INPUT:
+        enzymatic_reaction_I = string
+        database_I
+        ...
+        '''
+        
+        tables = ['models_biocyc_reactions']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        enzymatic_reaction_where = '%s"%s"%s'%('%',enzymatic_reaction_I,'%')
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'enzymatic_reaction',
+            'value':enzymatic_reaction_where,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'common_name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
     
     #models_biocyc_enzymaticReactions
     def get_rows_enzymeAndDatabase_modelsBioCycEnzymaticReactions(
