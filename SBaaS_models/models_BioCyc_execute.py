@@ -97,6 +97,25 @@ class models_BioCyc_execute(models_BioCyc_io):
                     tus.append(e);
                     mode = '("+")';
                 genes = [g for g in genes if g!='']  
+                ##flatten
+                #EcoCyc_flattened = BioCyc_dependencies.crossMultiple_2lists(
+                #    tmp['regulators_EcoCyc'],
+                #    tmp['regulated_entities_EcoCyc'],
+                #    'regulators_EcoCyc',
+                #    'regulated_entities_EcoCyc',
+                #)
+                #COBRA_flattened = BioCyc_dependencies.crossMultiple_2lists(
+                #    tmp['regulators_COBRA'],
+                #    tmp['regulated_entities_COBRA'],
+                #    'regulators_COBRA',
+                #    'regulated_entities_COBRA',
+                #)
+                #for i in range(len(EcoCyc_flattened)):
+                #    tmp1 = {};
+                #    tmp1.update(EcoCyc_flattened[i])
+                #    tmp1.update(COBRA_flattened[i])
+                #    tmp1.update(unique)        
+                #    regulation_O.append(tmp1);
                 BioCyc2COBRA_regulators_O[e] = {
                     'ligands':ligands,
                     'genes':genes,
