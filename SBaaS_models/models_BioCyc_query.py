@@ -1877,6 +1877,66 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
+    def get_rows_substratesAndParentClassesAndDatabase_modelsBioCycReactions(
+        self,substrates_I,
+        parentClasses_I = '("Protein-Ligand-Binding-Reactions")',
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_reactions
+        WHERE left LIKE AND parent_classes LIKE '''
+        
+        tables = ['models_biocyc_reactions']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+        
+        left_where = "%s%s%s" %('%"',substrates_I,'"%')
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'substrates',
+            'value':left_where,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'parent_classes',
+            'value':parentClasses_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
     
     #models_biocyc_enzymaticReactions
     def get_rows_enzymeAndDatabase_modelsBioCycEnzymaticReactions(

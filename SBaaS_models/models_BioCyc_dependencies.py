@@ -1,4 +1,4 @@
-# Resources
+﻿# Resources
 from molmass.molmass import Formula
 # System dependencies
 import re
@@ -17,7 +17,6 @@ class models_BioCyc_dependencies():
         left = rxn_lst[0].split(' + ');
         right = rxn_lst[1].split(' + ');
         return left,right;
-
     def convert_bioCycList2List(self,list_I):
         '''Convert biocyc string list to list
         INPUT:
@@ -32,7 +31,6 @@ class models_BioCyc_dependencies():
         except Exception as e:
             print(e);
         return list_O;
-
     def convert_gene2RegulatedEntity(self,gene_I):
         '''Convert gene to biocyc regulated entity
         INPUT:
@@ -46,7 +44,6 @@ class models_BioCyc_dependencies():
         except Exception as e:
             print(e);
         return regulatedEntity_O;
-
     def extract_regulatedEntityFromComponents(self,components_I):
         '''extract out regulated entities from biocyc polymerSegment components'''
 
@@ -56,7 +53,6 @@ class models_BioCyc_dependencies():
             if self.check_promoter(component):
                 regulated_entity = component;
         return regulated_entity;
-
     def check_promoter(self,component_I):
         ''' '''
         promoter_O=False;
@@ -68,7 +64,6 @@ class models_BioCyc_dependencies():
                 promoter_O=True;
                 break;
         return promoter_O;
-
     def parse_transcriptionUnit(self,tu_I):
         '''Parse a TU string into individual genes
         INPUT:
@@ -94,7 +89,6 @@ class models_BioCyc_dependencies():
                     gene = '%s%s' %(gene_base,end);
                     genes_O.append(gene);
         return genes_O;
-
     def count_parentClasses(self,data_I):
         '''Count the frequency of parent classes
         INPUT:
@@ -113,3 +107,183 @@ class models_BioCyc_dependencies():
         #reformat the counts into a list of dictionaries
         data_O = [{'parent_class':k,'frequency':v} for k,v in counts_O.items()];
         return data_O;
+
+    ##Mapping between BioCyc And COBRA functions
+    def map_BioCyc2COBRA(
+        self,
+        BioCyc_components_I,
+        BioCyc_components_dict_I=None,
+        BioCyc2COBRA_func_I=None,
+        BioCyc2COBRA_params_I={}
+        ):
+        '''Map BioCyc 2 Cobra component
+        INPUT:
+        BioCyc_components_I = list of bioCyc components
+        BioCyc_components_dict_I = dictDict: {bioCyc component:{'id1':,'id2':,...},...}
+        BioCyc2COBRA_func_I = function object to map bioCyc to COBRA ID
+        BioCyc2COBRA_params_I = dict of parameters for BioCyc2COBRA_func_I
+        OUTPUT:
+        original = list, original biocyc component names that were matched
+        converted = list, converted COBRA component names that were matched
+    
+        '''
+        original = [];
+        converted = [];
+        for component in BioCyc_components_I:
+            conv = None;
+            if not BioCyc2COBRA_func_I is None:
+                component_dict = None;
+                if not BioCyc_components_dict_I is None and \
+                    component in BioCyc_components_dict_I.keys():
+                        component_dict = BioCyc_components_dict_I[component]
+                if type(component_dict)==type({}):
+                    conv = BioCyc2COBRA_func_I(component_dict,**BioCyc2COBRA_params_I);
+            else:
+                conv = component;
+            if not conv is None:
+                original.append(component);
+                converted.append(conv);
+        return original,converted;
+    def crossMultiple_2lists(
+        self,
+        list_1,list_2,listKey_1='l1',listKey_2='l2'):
+        '''Cross multiply two lists'''
+        list_O = [];
+        for l1 in list_1:
+            for l2 in list_2:
+                list_O.append({
+                        listKey_1:l1,
+                        listKey_2:l2
+                    });
+        return list_O;
+    def map_BioCycReaction2COBRA(
+        self,
+        BioCyc_reaction_I,
+        COBRA_reactions_I):
+        '''map biocyc reaction to COBRA rxn_id
+        INPUT:
+        BioCyc_reaction_I = BioCyc reaction identifier
+        COBRA_reactions_I = listDict representation of COBRA reaction information
+        OUTPUT:
+        rxn_id_O = string, rxn_id
+        '''
+        rxn_id_O = None;
+        for row in COBRA_reactions_I:
+            if self.match_BioCycReaction2COBRA(BioCyc_reaction_I,row):
+                rxn_id_O = row['rxn_id'];
+                break;
+        return rxn_id_O;
+    def match_BioCycReaction2COBRA(
+        self,
+        BioCyc_reaction_I,
+        COBRA_reaction_I):
+        '''match biocyc reaction to COBRA rxn_id
+        INPUT:
+        BioCyc_reaction_I = BioCyc reaction identifier
+        COBRA_reactions_I = Dict representation of COBRA reaction information
+        OUTPUT:
+        match = boolean
+        '''
+        if not 'database_links' in COBRA_reaction_I.keys() or \
+            COBRA_reaction_I['database_links'] is None:
+            print('no database_links provided for mapping')
+            return False;
+        #parse biocyc reaction_ids
+        biocyc_ec_numbers = self.convert_bioCycList2List(
+            BioCyc_reaction_I['ec_number']
+        );
+        biocyc_frame_ids = [BioCyc_reaction_I['frame_id']];
+        #parse cobra reaction_ids
+        cobra_ec_numbers = []
+        cobra_frame_ids = []
+        if 'EC Number' in COBRA_reaction_I['database_links']:
+            for row in COBRA_reaction_I['database_links']['EC Number']:
+                cobra_ec_number = row['id'];
+                cobra_ec_numbers.append(cobra_ec_number)
+        if 'BioCyc' in COBRA_reaction_I['database_links']:
+            for row in COBRA_reaction_I['database_links']['BioCyc']:
+                cobra_frame_id = row['id'].replace('META:','')
+                cobra_frame_ids.append(cobra_frame_id)
+        #remove duplicates
+        cobra_ec_numbers = list(set(cobra_ec_numbers))
+        cobra_frame_ids = list(set(cobra_frame_ids))
+        #match
+        match = False;
+        if biocyc_frame_ids and cobra_frame_ids and \
+            len(list(set(biocyc_frame_ids+cobra_frame_ids)))<\
+            len(biocyc_frame_ids+cobra_frame_ids):
+                match = True;
+        elif biocyc_ec_numbers and cobra_ec_numbers and \
+            len(list(set(biocyc_ec_numbers+cobra_ec_numbers)))<\
+            len(biocyc_ec_numbers+cobra_ec_numbers):
+                match = True;
+        return match; 
+    def map_BioCycCompound2COBRA(
+        self,
+        BioCyc_metabolite_I,
+        COBRA_metabolites_I,
+        chebi2inchi_dict_I
+        ):
+        '''map biocyc reaction to COBRA rxn_id
+        INPUT:
+        BioCyc_metabolite_I = BioCyc metabolite identifier
+        COBRA_metabolites_I = listDict representation of COBRA metabolite information
+        chebi2inchi_dict_I = dictionary of {"CHEBI_ID":"INCHI"}
+        OUTPUT:
+        met_id_O = string, met_id
+        '''
+        met_id_O = None;
+        for row in COBRA_metabolites_I:
+            if self.match_BioCycMetabolite2COBRA(BioCyc_metabolite_I,row,chebi2inchi_dict_I):
+                met_id_O = row['met_id'];
+                break;
+        return met_id_O;
+    def match_BioCycMetabolite2COBRA(
+        self,
+        BioCyc_metabolite_I,
+        COBRA_metabolite_I,
+        chebi2inchi_dict_I):
+        '''match biocyc metabolite to COBRA rxn_id
+        INPUT:
+        BioCyc_metabolite_I = BioCyc metabolite identifier
+        COBRA_metabolites_I = Dict representation of COBRA metabolite information
+        chebi2inchi_dict_I = dictionary of {"CHEBI_ID":"INCHI"}
+        OUTPUT:
+        match = boolean
+        '''
+        if not 'database_links' in COBRA_metabolite_I.keys() or \
+            COBRA_metabolite_I['database_links'] is None:
+            print('no database_links provided for mapping')
+            return None;
+        #parse biocyc metabolite_ids
+        biocyc_inchi_numbers = self.convert_bioCycList2List(
+            BioCyc_metabolite_I['inchi']
+        );
+        biocyc_frame_ids = [BioCyc_metabolite_I['frame_id']];
+        #parse cobra metabolite_ids
+        cobra_inchi_numbers = []
+        cobra_frame_ids = []
+        if 'CHEBI' in COBRA_metabolite_I['database_links']:
+            for row in COBRA_metabolite_I['database_links']['CHEBI']:
+                cobra_chebi_number = row['id'].replace('CHEBI:','');
+                if cobra_chebi_number in chebi2inchi_dict_I.keys():
+                    cobra_inchi_number = chebi2inchi_dict_I[cobra_chebi_number]
+                    cobra_inchi_numbers.append(cobra_inchi_number)
+        if 'BioCyc' in COBRA_metabolite_I['database_links']:
+            for row in COBRA_metabolite_I['database_links']['BioCyc']:
+                cobra_frame_id = row['id'].replace('META:','')
+                cobra_frame_ids.append(cobra_frame_id)
+        #remove duplicates
+        cobra_inchi_numbers = list(set(cobra_inchi_numbers))
+        cobra_frame_ids = list(set(cobra_frame_ids))
+        #match
+        match = False;
+        if biocyc_frame_ids and cobra_frame_ids and \
+            len(list(set(biocyc_frame_ids+cobra_frame_ids)))<\
+            len(biocyc_frame_ids+cobra_frame_ids):
+                match = True;
+        elif biocyc_inchi_numbers and cobra_inchi_numbers and \
+            len(list(set(biocyc_inchi_numbers+cobra_inchi_numbers)))<\
+            len(biocyc_inchi_numbers+cobra_inchi_numbers):
+                match = True;
+        return match; 
