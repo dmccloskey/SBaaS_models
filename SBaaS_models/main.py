@@ -1,13 +1,13 @@
 ﻿import sys
-sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
-#sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
+#sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
+sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
 from SBaaS_base.postgresql_settings import postgresql_settings
 from SBaaS_base.postgresql_orm import postgresql_orm
 
 # read in the settings file
-filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
+#filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
 #filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_labtop.ini';
-#filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
+filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
 pg_settings = postgresql_settings(filename);
 
 # connect to the database from the settings file
@@ -86,122 +86,57 @@ biocyc01.initialize_tables()
 from io_utilities.import_webData import import_webData
 i_webData = import_webData();
 
-#server = "ftp://ftp.ebi.ac.uk"
-server = "ftp.ebi.ac.uk"
-ext = "/pub/databases/chebi/Flat_file_tab_delimited/"
-filename = "chebiId_inchi_3star.tsv"
-file = i_webData.get_ftp(server,ext,filename)
-
-#parse the binary data
-chebi2inchi_I = i_webData.parse_binaryFile(file,encoding = 'utf-8',deliminator = '\t',headers = [])
-
 from io_utilities.base_importData import base_importData
 from io_utilities.base_exportData import base_exportData
 
 iobase = base_importData();
 iobase.read_json(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation.json');
-BioCyc2COBRA_regulation_I = iobase.data;
+    '/_output/BioCyc_regulation.json');
+regulation_O = iobase.data;
 
-COBRA_metabolites_I = cobra01.get_rows_modelID_dataStage02PhysiologyModelMetabolites(
+COBRA_reactions = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
+    'iJO1366')
+COBRA_metabolites = cobra01.get_rows_modelID_dataStage02PhysiologyModelMetabolites(
     'iJO1366')
 
-BioCyc2COBRA_regulators_O = biocyc01.convertAndMap_BioCycTranscriptionFactor2COBRA(
-    BioCyc2COBRA_regulation_I,
-    None,
-    COBRA_metabolites_I,
-    chebi2inchi_I
+iobase = base_importData();
+iobase.read_json(
+   pg_settings.datadir_settings['workspace_data']+\
+   '/_output/chebiId_inchi_3star.json');
+chebi2inchi = iobase.data;
+
+iobase = base_importData();
+iobase.read_json(
+   pg_settings.datadir_settings['workspace_data']+\
+   '/_output/metanetx_reac_xref.json');
+metanetx_reac_xref = iobase.data;
+
+iobase = base_importData();
+iobase.read_json(
+   pg_settings.datadir_settings['workspace_data']+\
+   '/_output/metanetx_chem_xref.json');
+metanetx_chem_xref = iobase.data;
+
+iobase = base_importData();
+iobase.read_json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc_reactions.json');
+BioCyc_reactions = iobase.data;
+
+iobase = base_importData();
+iobase.read_json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc_compounds.json');
+BioCyc_compounds = iobase.data;
+
+BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
+    regulation_O,
+    BioCyc_reactions,
+    BioCyc_compounds,
+    COBRA_reactions,
+    COBRA_metabolites,
+    chebi2inchi,
+    MetaNetX_reactions_I = metanetx_reac_xref,
+    MetaNetX_metabolites_I = metanetx_chem_xref,
     );
-
-BioCyc2COBRA_regulation_all = [];
-#iterate through each row of regulation
-for row in BioCyc2COBRA_regulation_I:
-    unique = {
-        'regulator':row['regulator'],
-        'regulated_entity':row['regulated_entity'],
-        'mode':row['mode'],
-        'mechanism':row['mechanism'],
-        'name':row['name']
-    }
-    tmp = {
-        'left_EcoCyc':[],
-        'left_COBRA':[],
-        'right_EcoCyc':[],
-        'right_COBRA':[],
-    }
-    if row['regulator'] in BioCyc2COBRA_regulators_O.keys():
-        for reg in BioCyc2COBRA_regulators_O[row['regulator']]:
-            tmp = {
-                'left_EcoCyc':reg['ligands']['BioCyc_name'],
-                'left_COBRA':reg['ligands']['COBRA_met_id'],
-                'right_EcoCyc':reg['tus'],
-                'right_COBRA':reg['tus'],
-                'regulator':row['regulator'],
-                'regulated_entity':row['regulated_entity'],
-                'mode':reg['mode'],
-                'mechanism':'ligand-transcription factor-binding',
-                'name':row['name']
-            };
-            BioCyc2COBRA_regulation_all.append(tmp);
-            tmp = {
-                'left_EcoCyc':reg['genes'],
-                'left_COBRA':reg['genes'],
-                'right_EcoCyc':reg['tus'],
-                'right_COBRA':reg['tus'],
-                'regulator':row['regulator'],
-                'regulated_entity':row['regulated_entity'],
-                'mode':reg['mode'],
-                'mechanism':'gene-transcription factor',
-                'name':row['name']
-            };
-            BioCyc2COBRA_regulation_all.append(tmp);
-            tmp = {
-                'left_EcoCyc':reg['ligands']['BioCyc_name'],
-                'left_COBRA':reg['ligands']['COBRA_met_id'],
-                'right_EcoCyc':row['regulated_entities_EcoCyc'],
-                'right_COBRA':row['regulated_entities_COBRA'],
-                'regulator':row['regulator'],
-                'regulated_entity':row['regulated_entity'],
-                'mode':reg['mode']+row['mode'],
-                'mechanism':'ligand-transcription factor-gene',
-                'name':row['name']
-            };
-            BioCyc2COBRA_regulation_all.append(tmp);
-            tmp = {
-                'left_EcoCyc':reg['genes'],
-                'left_COBRA':reg['genes'],
-                'right_EcoCyc':row['regulated_entities_EcoCyc'],
-                'right_COBRA':row['regulated_entities_COBRA'],
-                'regulator':row['regulator'],
-                'regulated_entity':row['regulated_entity'],
-                'mode':row['mode'],
-                'mechanism':'gene-transcription factor-gene',
-                'name':row['name']
-            };
-            BioCyc2COBRA_regulation_all.append(tmp);
-        tmp = {
-            'left_EcoCyc':row['regulators_EcoCyc'],
-            'left_COBRA':row['regulators_COBRA'],
-            'right_EcoCyc':row['regulated_entities_EcoCyc'],
-            'right_COBRA':row['regulated_entities_COBRA'],
-        };
-        tmp.update(unique);
-        BioCyc2COBRA_regulation_all.append(tmp);
-    else:
-        tmp = {
-            'left_EcoCyc':row['regulators_EcoCyc'],
-            'left_COBRA':row['regulators_COBRA'],
-            'right_EcoCyc':row['regulated_entities_EcoCyc'],
-            'right_COBRA':row['regulated_entities_COBRA'],
-        };
-        tmp.update(unique);
-        BioCyc2COBRA_regulation_all.append(tmp);
-
-iobase = base_exportData(BioCyc2COBRA_regulation_all);
-iobase.write_dict2json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_all.json');
-iobase.write_dict2csv(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_all.csv');

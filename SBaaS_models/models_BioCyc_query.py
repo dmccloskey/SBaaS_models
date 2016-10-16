@@ -1459,6 +1459,65 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
+    def get_rows_productAndDatabase_modelsBioCycPolymerSegments(
+        self,
+        product_I,
+        parentClasses_I = '("Transcription-Units")',
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT name FROM models_biocyc_polymerSegments
+        WHERE product LIKE '''
+        
+        tables = ['models_biocyc_polymerSegments']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        product_where = '%s"%s"%s' %('%',product_I,'%')
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'product',
+            'value':product_where,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'product',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
 
     #models_biocyc_proteinFeatures
     def get_rows_featureOfAndDatabase_modelsBioCycProteinFeatures(

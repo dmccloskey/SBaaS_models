@@ -130,20 +130,29 @@ class models_BioCyc_dependencies():
         original = [];
         converted = [];
         for component in BioCyc_components_I:
+            if component == 'fructose 1,6-bisphosphate':
+                print('check');
+            elif component == 'glutamine synthetase':
+                print('check');
+            elif component == 'L-aspartate oxidase':
+                print('check');
             conv = None;
             if not BioCyc2COBRA_func_I is None:
                 component_dict = None;
                 if not BioCyc_components_dict_I is None and \
                     component in BioCyc_components_dict_I.keys():
-                        component_dict = BioCyc_components_dict_I[component]
+                    components = BioCyc_components_dict_I[component]
+                    for component_dict in components:
+                        conv = BioCyc2COBRA_func_I(component_dict,**BioCyc2COBRA_params_I);
+                        original.append(component);
+                        converted.append(conv);
                 elif type(component)==type({}):
-                    component_dict = component;
-                if type(component_dict)==type({}):
-                    conv = BioCyc2COBRA_func_I(component_dict,**BioCyc2COBRA_params_I);
-            else:
-                conv = component;
-            original.append(component);
-            converted.append(conv);
+                    conv = BioCyc2COBRA_func_I(component,**BioCyc2COBRA_params_I);
+                    original.append(component);
+                    converted.append(conv);
+                else:
+                    original.append(component);
+                    converted.append(component);
         return original,converted;
     def crossMultiple_2lists(
         self,
@@ -160,28 +169,34 @@ class models_BioCyc_dependencies():
     def map_BioCycReaction2COBRA(
         self,
         BioCyc_reaction_I,
-        COBRA_reactions_I):
+        COBRA_reactions_I,
+        MetaNetX_reactions_dict_I={}
+        ):
         '''map biocyc reaction to COBRA rxn_id
         INPUT:
         BioCyc_reaction_I = BioCyc reaction identifier
         COBRA_reactions_I = listDict representation of COBRA reaction information
+        MetaNetX_reactions_dict_I = dictionary of {"MNX_ID":{'bigg':,'metacyc':,...},...}
         OUTPUT:
         rxn_id_O = string, rxn_id
         '''
         rxn_id_O = None;
         for row in COBRA_reactions_I:
-            if self.match_BioCycReaction2COBRA(BioCyc_reaction_I,row):
+            if self.match_BioCycReaction2COBRA(BioCyc_reaction_I,row,
+                                               MetaNetX_reactions_dict_I):
                 rxn_id_O = row['rxn_id'];
                 break;
         return rxn_id_O;
     def match_BioCycReaction2COBRA(
         self,
         BioCyc_reaction_I,
-        COBRA_reaction_I):
+        COBRA_reaction_I,
+        MetaNetX_reactions_dict_I):
         '''match biocyc reaction to COBRA rxn_id
         INPUT:
         BioCyc_reaction_I = BioCyc reaction identifier
         COBRA_reactions_I = Dict representation of COBRA reaction information
+        MetaNetX_reactions_dict_I = dictionary of {"MNX_ID":{'bigg':,'metacyc':,...},...}
         OUTPUT:
         match = boolean
         '''
@@ -197,6 +212,7 @@ class models_BioCyc_dependencies():
         #parse cobra reaction_ids
         cobra_ec_numbers = []
         cobra_frame_ids = []
+        cobra_metanetx_ids = []
         if 'EC Number' in COBRA_reaction_I['database_links']:
             for row in COBRA_reaction_I['database_links']['EC Number']:
                 cobra_ec_number = row['id'];
@@ -205,16 +221,27 @@ class models_BioCyc_dependencies():
             for row in COBRA_reaction_I['database_links']['BioCyc']:
                 cobra_frame_id = row['id'].replace('META:','')
                 cobra_frame_ids.append(cobra_frame_id)
+        if 'MetaNetX (MNX) Equation' in COBRA_reaction_I['database_links']:
+            for row in COBRA_reaction_I['database_links']['MetaNetX (MNX) Equation']:
+                if row['id'] in MetaNetX_reactions_dict_I.keys() and \
+                    'metacyc' in MetaNetX_reactions_dict_I[row['id']].keys():
+                    cobra_metanetx_id = MetaNetX_reactions_dict_I[row['id']]['metacyc']
+                    cobra_metanetx_ids.append(cobra_metanetx_id)
         #remove duplicates
         cobra_ec_numbers = list(set(cobra_ec_numbers))
         cobra_frame_ids = list(set(cobra_frame_ids))
+        cobra_metanetx_ids = list(set(cobra_metanetx_ids))
         #match
         match = False;
         if biocyc_frame_ids and cobra_frame_ids and \
             len(list(set(biocyc_frame_ids+cobra_frame_ids)))<\
             len(biocyc_frame_ids+cobra_frame_ids):
                 match = True;
-        elif biocyc_ec_numbers and cobra_ec_numbers and \
+        if biocyc_frame_ids and cobra_metanetx_ids and \
+            len(list(set(biocyc_frame_ids+cobra_metanetx_ids)))<\
+            len(biocyc_frame_ids+cobra_metanetx_ids):
+                match = True;
+        if biocyc_ec_numbers and cobra_ec_numbers and \
             len(list(set(biocyc_ec_numbers+cobra_ec_numbers)))<\
             len(biocyc_ec_numbers+cobra_ec_numbers):
                 match = True;
@@ -223,19 +250,24 @@ class models_BioCyc_dependencies():
         self,
         BioCyc_metabolite_I,
         COBRA_metabolites_I,
-        chebi2inchi_dict_I
+        chebi2inchi_dict_I={},
+        MetaNetX_metabolites_dict_I={}
         ):
         '''map biocyc reaction to COBRA rxn_id
         INPUT:
         BioCyc_metabolite_I = BioCyc metabolite identifier
         COBRA_metabolites_I = listDict representation of COBRA metabolite information
         chebi2inchi_dict_I = dictionary of {"CHEBI_ID":"INCHI"}
+        MetaNetX_metabolites_dict_I = dictionary of {"MNX_ID":{'bigg':,'metacyc':,...},...}
         OUTPUT:
         met_id_O = string, met_id
         '''
         met_id_O = None;
         for row in COBRA_metabolites_I:
-            if self.match_BioCycMetabolite2COBRA(BioCyc_metabolite_I,row,chebi2inchi_dict_I):
+            if self.match_BioCycMetabolite2COBRA(
+                BioCyc_metabolite_I,row,
+                chebi2inchi_dict_I,
+                MetaNetX_metabolites_dict_I):
                 met_id_O = row['met_id'];
                 break;
         return met_id_O;
@@ -243,12 +275,14 @@ class models_BioCyc_dependencies():
         self,
         BioCyc_metabolite_I,
         COBRA_metabolite_I,
-        chebi2inchi_dict_I):
+        chebi2inchi_dict_I,
+        MetaNetX_metabolites_dict_I={}):
         '''match biocyc metabolite to COBRA rxn_id
         INPUT:
         BioCyc_metabolite_I = BioCyc metabolite identifier
         COBRA_metabolites_I = Dict representation of COBRA metabolite information
         chebi2inchi_dict_I = dictionary of {"CHEBI_ID":"INCHI"}
+        MetaNetX_metabolites_dict_I = dictionary of {"MNX_ID":{'bigg':,'metacyc':,...},...}
         OUTPUT:
         match = boolean
         '''
@@ -264,6 +298,7 @@ class models_BioCyc_dependencies():
         #parse cobra metabolite_ids
         cobra_inchi_numbers = []
         cobra_frame_ids = []
+        cobra_metanetx_ids = []
         if 'CHEBI' in COBRA_metabolite_I['database_links']:
             for row in COBRA_metabolite_I['database_links']['CHEBI']:
                 cobra_chebi_number = row['id'].replace('CHEBI:','');
@@ -274,16 +309,27 @@ class models_BioCyc_dependencies():
             for row in COBRA_metabolite_I['database_links']['BioCyc']:
                 cobra_frame_id = row['id'].replace('META:','')
                 cobra_frame_ids.append(cobra_frame_id)
+        if 'MetaNetX (MNX) Chemical' in COBRA_metabolite_I['database_links']:
+            for row in COBRA_metabolite_I['database_links']['MetaNetX (MNX) Chemical']:
+                if row['id'] in MetaNetX_metabolites_dict_I.keys() and \
+                    'metacyc' in MetaNetX_metabolites_dict_I[row['id']].keys():
+                    cobra_metanetx_id = MetaNetX_metabolites_dict_I[row['id']]['metacyc']
+                    cobra_metanetx_ids.append(cobra_metanetx_id)
         #remove duplicates
         cobra_inchi_numbers = list(set(cobra_inchi_numbers))
         cobra_frame_ids = list(set(cobra_frame_ids))
+        cobra_metanetx_ids = list(set(cobra_metanetx_ids))
         #match
         match = False;
         if biocyc_frame_ids and cobra_frame_ids and \
             len(list(set(biocyc_frame_ids+cobra_frame_ids)))<\
             len(biocyc_frame_ids+cobra_frame_ids):
                 match = True;
-        elif biocyc_inchi_numbers and cobra_inchi_numbers and \
+        if biocyc_frame_ids and cobra_metanetx_ids and \
+            len(list(set(biocyc_frame_ids+cobra_metanetx_ids)))<\
+            len(biocyc_frame_ids+cobra_metanetx_ids):
+                match = True;
+        if biocyc_inchi_numbers and cobra_inchi_numbers and \
             len(list(set(biocyc_inchi_numbers+cobra_inchi_numbers)))<\
             len(biocyc_inchi_numbers+cobra_inchi_numbers):
                 match = True;
