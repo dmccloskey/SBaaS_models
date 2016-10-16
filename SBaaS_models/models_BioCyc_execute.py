@@ -21,12 +21,24 @@ class models_BioCyc_execute(models_BioCyc_io):
         from SBaaS_models.models_BioCyc_dependencies import models_BioCyc_dependencies
         BioCyc_dependencies = models_BioCyc_dependencies();
 
-        BioCyc2COBRA_regulators = list(set([r['regulator'] for r in BioCyc2COBRA_regulation_I]));
-        chebi2inchi_dict_I = {r['CHEBI_ID']:r['InChI'] for r in chebi2inchi_I}
-        BioCyc_compounds_dict_I = {r['name']:r for r in BioCyc_compounds_I}
+        if not BioCyc2COBRA_regulation_I is None and BioCyc2COBRA_regulation_I:
+            BioCyc2COBRA_regulators = list(set([r['regulator'] for r in BioCyc2COBRA_regulation_I]));
+        else:
+            BioCyc2COBRA_regulators=BioCyc2COBRA_regulation_I;
+        if not chebi2inchi_I is None and chebi2inchi_I:
+            chebi2inchi_dict_I = {r['CHEBI_ID']:r['InChI'] for r in chebi2inchi_I}
+        else:
+            chebi2inchi_dict_I=chebi2inchi_I;
+        if not BioCyc_compounds_I is None and BioCyc_compounds_I:
+            BioCyc_compounds_dict_I = {r['name']:r for r in BioCyc_compounds_I}
+        else:
+            BioCyc_compounds_dict_I=BioCyc_compounds_I;
 
         BioCyc2COBRA_regulators_O = {}
         for e in BioCyc2COBRA_regulators:
+            BioCyc2COBRA_regulators_O[e]=[];
+            if e == 'Cra DNA-binding transcriptional dual regulator':
+                print('check');
             tmp = self.get_rows_substratesAndParentClassesAndDatabase_modelsBioCycReactions(
                 e,
                 database_I='ECOLI',
@@ -57,7 +69,8 @@ class models_BioCyc_execute(models_BioCyc_io):
                     elif compounds:
                         #map the ligand names...
                         original,converted = BioCyc_dependencies.map_BioCyc2COBRA(
-                            [c['name'] for c in compounds],
+                            compounds,
+                            #[c['name'] for c in compounds],
                             BioCyc_components_dict_I=BioCyc_compounds_dict_I,
                             BioCyc2COBRA_func_I=BioCyc_dependencies.map_BioCycCompound2COBRA,
                             BioCyc2COBRA_params_I={
@@ -65,7 +78,8 @@ class models_BioCyc_execute(models_BioCyc_io):
                                 'chebi2inchi_dict_I':chebi2inchi_dict_I,
                             }
                         );
-                        ligands['BioCyc_name'].extend(original)
+                        ligands['BioCyc_name'].extend([c['name'] for c in original])
+                        #ligands['BioCyc_name'].extend(original)
                         ligands['COBRA_met_id'].extend(converted)
                 for r in right:
                     proteins = self.get_rows_nameAndDatabase_modelsBioCycProteins(
@@ -79,7 +93,8 @@ class models_BioCyc_execute(models_BioCyc_io):
                             genes.extend(BioCyc_dependencies.convert_bioCycList2List(p['gene'])); 
                     elif compounds:
                         original,converted = BioCyc_dependencies.map_BioCyc2COBRA(
-                            [c['name'] for c in compounds],
+                            compounds,
+                            #[c['name'] for c in compounds],
                             BioCyc_components_dict_I=BioCyc_compounds_dict_I,
                             BioCyc2COBRA_func_I=BioCyc_dependencies.map_BioCycCompound2COBRA,
                             BioCyc2COBRA_params_I={
@@ -87,7 +102,8 @@ class models_BioCyc_execute(models_BioCyc_io):
                                 'chebi2inchi_dict_I':chebi2inchi_dict_I,
                             }
                         );
-                        ligands['BioCyc_name'].extend(original)
+                        ligands['BioCyc_name'].extend([c['name'] for c in original])
+                        #ligands['BioCyc_name'].extend(original)
                         ligands['COBRA_met_id'].extend(converted)
                 #check for tus
                 if e in left:
@@ -116,13 +132,13 @@ class models_BioCyc_execute(models_BioCyc_io):
                 #    tmp1.update(COBRA_flattened[i])
                 #    tmp1.update(unique)        
                 #    regulation_O.append(tmp1);
-                BioCyc2COBRA_regulators_O[e] = {
+                BioCyc2COBRA_regulators_O[e].append({
                     'ligands':ligands,
                     'genes':genes,
                     'tus':tus,
                     'regulator':e,
                     'mode':mode,
-                    };
+                    });
         return BioCyc2COBRA_regulators_O;
 
     def convertAndMap_BioCycRegulation2COBRA(

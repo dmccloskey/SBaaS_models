@@ -1,13 +1,13 @@
 ﻿import sys
-#sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
-sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
+sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
+#sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
 from SBaaS_base.postgresql_settings import postgresql_settings
 from SBaaS_base.postgresql_orm import postgresql_orm
 
 # read in the settings file
-#filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
+filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
 #filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_labtop.ini';
-filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
+#filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
 pg_settings = postgresql_settings(filename);
 
 # connect to the database from the settings file
@@ -107,15 +107,9 @@ BioCyc2COBRA_regulation_I = iobase.data;
 COBRA_metabolites_I = cobra01.get_rows_modelID_dataStage02PhysiologyModelMetabolites(
     'iJO1366')
 
-iobase = base_importData();
-iobase.read_json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_compounds.json');
-BioCyc_compounds_I = iobase.data;
-
 BioCyc2COBRA_regulators_O = biocyc01.convertAndMap_BioCycTranscriptionFactor2COBRA(
     BioCyc2COBRA_regulation_I,
-    BioCyc_compounds_I,
+    None,
     COBRA_metabolites_I,
     chebi2inchi_I
     );
@@ -137,42 +131,62 @@ for row in BioCyc2COBRA_regulation_I:
         'right_COBRA':[],
     }
     if row['regulator'] in BioCyc2COBRA_regulators_O.keys():
+        for reg in BioCyc2COBRA_regulators_O[row['regulator']]:
+            tmp = {
+                'left_EcoCyc':reg['ligands']['BioCyc_name'],
+                'left_COBRA':reg['ligands']['COBRA_met_id'],
+                'right_EcoCyc':reg['tus'],
+                'right_COBRA':reg['tus'],
+                'regulator':row['regulator'],
+                'regulated_entity':row['regulated_entity'],
+                'mode':reg['mode'],
+                'mechanism':'ligand-transcription factor-binding',
+                'name':row['name']
+            };
+            BioCyc2COBRA_regulation_all.append(tmp);
+            tmp = {
+                'left_EcoCyc':reg['genes'],
+                'left_COBRA':reg['genes'],
+                'right_EcoCyc':reg['tus'],
+                'right_COBRA':reg['tus'],
+                'regulator':row['regulator'],
+                'regulated_entity':row['regulated_entity'],
+                'mode':reg['mode'],
+                'mechanism':'gene-transcription factor',
+                'name':row['name']
+            };
+            BioCyc2COBRA_regulation_all.append(tmp);
+            tmp = {
+                'left_EcoCyc':reg['ligands']['BioCyc_name'],
+                'left_COBRA':reg['ligands']['COBRA_met_id'],
+                'right_EcoCyc':row['regulated_entities_EcoCyc'],
+                'right_COBRA':row['regulated_entities_COBRA'],
+                'regulator':row['regulator'],
+                'regulated_entity':row['regulated_entity'],
+                'mode':reg['mode']+row['mode'],
+                'mechanism':'ligand-transcription factor-gene',
+                'name':row['name']
+            };
+            BioCyc2COBRA_regulation_all.append(tmp);
+            tmp = {
+                'left_EcoCyc':reg['genes'],
+                'left_COBRA':reg['genes'],
+                'right_EcoCyc':row['regulated_entities_EcoCyc'],
+                'right_COBRA':row['regulated_entities_COBRA'],
+                'regulator':row['regulator'],
+                'regulated_entity':row['regulated_entity'],
+                'mode':row['mode'],
+                'mechanism':'gene-transcription factor-gene',
+                'name':row['name']
+            };
+            BioCyc2COBRA_regulation_all.append(tmp);
         tmp = {
-            'left_EcoCyc':BioCyc2COBRA_regulators_O[row['regulator']]['ligands']['BioCyc_name'],
-            'left_COBRA':BioCyc2COBRA_regulators_O[row['regulator']]['ligands']['COBRA_met_id'],
-            'right_EcoCyc':BioCyc2COBRA_regulators_O[row['regulator']]['tus'],
-            'right_COBRA':BioCyc2COBRA_regulators_O[row['regulator']]['tus'],
-            'regulator':row['regulator'],
-            'regulated_entity':row['regulated_entity'],
-            'mode':BioCyc2COBRA_regulators_O[row['regulator']]['mode'],
-            'mechanism':'ligand-transcription factor-binding',
-            'name':row['name']
-        };
-        BioCyc2COBRA_regulation_all.append(tmp);
-        tmp = {
-            'left_EcoCyc':BioCyc2COBRA_regulators_O[row['regulator']]['genes'],
-            'left_COBRA':BioCyc2COBRA_regulators_O[row['regulator']]['genes'],
-            'right_EcoCyc':BioCyc2COBRA_regulators_O[row['regulator']]['tus'],
-            'right_COBRA':BioCyc2COBRA_regulators_O[row['regulator']]['tus'],
-            'regulator':row['regulator'],
-            'regulated_entity':row['regulated_entity'],
-            'mode':BioCyc2COBRA_regulators_O[row['regulator']]['mode'],
-            'mechanism':'genes-to-transcription factor',
-            'name':row['name']
-        };
-        BioCyc2COBRA_regulation_all.append(tmp);
-        BioCyc2COBRA_regulation_all.append(tmp);
-        tmp = {
-            'left_EcoCyc':BioCyc2COBRA_regulators_O[row['regulator']]['ligands']['BioCyc_name'],
-            'left_COBRA':BioCyc2COBRA_regulators_O[row['regulator']]['ligands']['COBRA_met_id'],
+            'left_EcoCyc':row['regulators_EcoCyc'],
+            'left_COBRA':row['regulators_COBRA'],
             'right_EcoCyc':row['regulated_entities_EcoCyc'],
             'right_COBRA':row['regulated_entities_COBRA'],
-            'regulator':row['regulator'],
-            'regulated_entity':row['regulated_entity'],
-            'mode':'("+" "-")',
-            'mechanism':'ligand-transcription factor-target gene',
-            'name':row['name']
         };
+        tmp.update(unique);
         BioCyc2COBRA_regulation_all.append(tmp);
     else:
         tmp = {

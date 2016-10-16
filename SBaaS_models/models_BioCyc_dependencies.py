@@ -136,13 +136,14 @@ class models_BioCyc_dependencies():
                 if not BioCyc_components_dict_I is None and \
                     component in BioCyc_components_dict_I.keys():
                         component_dict = BioCyc_components_dict_I[component]
+                elif type(component)==type({}):
+                    component_dict = component;
                 if type(component_dict)==type({}):
                     conv = BioCyc2COBRA_func_I(component_dict,**BioCyc2COBRA_params_I);
             else:
                 conv = component;
-            if not conv is None:
-                original.append(component);
-                converted.append(conv);
+            original.append(component);
+            converted.append(conv);
         return original,converted;
     def crossMultiple_2lists(
         self,
