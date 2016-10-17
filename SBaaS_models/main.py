@@ -1,13 +1,13 @@
 ﻿import sys
-#sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
-sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
+sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
+#sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
 from SBaaS_base.postgresql_settings import postgresql_settings
 from SBaaS_base.postgresql_orm import postgresql_orm
 
 # read in the settings file
-#filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
+filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
 #filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_labtop.ini';
-filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
+#filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
 pg_settings = postgresql_settings(filename);
 
 # connect to the database from the settings file
@@ -140,3 +140,11 @@ BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
     MetaNetX_reactions_I = metanetx_reac_xref,
     MetaNetX_metabolites_I = metanetx_chem_xref,
     );
+
+iobase = base_exportData(BioCyc2COBRA_regulation);
+iobase.write_dict2json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc2COBRA_regulation.json');
+iobase.write_dict2csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc2COBRA_regulation.csv');

@@ -134,7 +134,7 @@ class models_BioCyc_dependencies():
                 print('check');
             elif component == 'glutamine synthetase':
                 print('check');
-            elif component == 'L-aspartate oxidase':
+            elif component == 'isocitrate lyase':
                 print('check');
             conv = None;
             if not BioCyc2COBRA_func_I is None:
@@ -200,11 +200,19 @@ class models_BioCyc_dependencies():
         OUTPUT:
         match = boolean
         '''
-        if not 'database_links' in COBRA_reaction_I.keys() or \
-            COBRA_reaction_I['database_links'] is None:
-            print('no database_links provided for mapping')
-            return False;
         #parse biocyc reaction_ids
+        biocyc_names = [];
+        biocyc_names.append(BioCyc_reaction_I['common_name'])
+        biocyc_names.extend(self.convert_bioCycList2List(
+            BioCyc_reaction_I['names']
+        ));
+        biocyc_names.extend(self.convert_bioCycList2List(
+            BioCyc_reaction_I['synonyms']
+        ));
+        biocyc_names.extend(self.convert_bioCycList2List(
+            BioCyc_reaction_I['enzymatic_reaction']
+        ));
+        biocyc_names = list(set([r.lower() for r in biocyc_names if r!='']))
         biocyc_ec_numbers = self.convert_bioCycList2List(
             BioCyc_reaction_I['ec_number']
         );
@@ -213,26 +221,34 @@ class models_BioCyc_dependencies():
         cobra_ec_numbers = []
         cobra_frame_ids = []
         cobra_metanetx_ids = []
-        if 'EC Number' in COBRA_reaction_I['database_links']:
-            for row in COBRA_reaction_I['database_links']['EC Number']:
-                cobra_ec_number = row['id'];
-                cobra_ec_numbers.append(cobra_ec_number)
-        if 'BioCyc' in COBRA_reaction_I['database_links']:
-            for row in COBRA_reaction_I['database_links']['BioCyc']:
-                cobra_frame_id = row['id'].replace('META:','')
-                cobra_frame_ids.append(cobra_frame_id)
-        if 'MetaNetX (MNX) Equation' in COBRA_reaction_I['database_links']:
-            for row in COBRA_reaction_I['database_links']['MetaNetX (MNX) Equation']:
-                if row['id'] in MetaNetX_reactions_dict_I.keys() and \
-                    'metacyc' in MetaNetX_reactions_dict_I[row['id']].keys():
-                    cobra_metanetx_id = MetaNetX_reactions_dict_I[row['id']]['metacyc']
-                    cobra_metanetx_ids.append(cobra_metanetx_id)
+        cobra_name = COBRA_reaction_I['rxn_name'].lower();
+        if not 'database_links' in COBRA_reaction_I.keys() or \
+            COBRA_reaction_I['database_links'] is None:
+            print('no database_links provided for mapping')
+        else:
+            if 'EC Number' in COBRA_reaction_I['database_links']:
+                for row in COBRA_reaction_I['database_links']['EC Number']:
+                    cobra_ec_number = row['id'];
+                    cobra_ec_numbers.append(cobra_ec_number)
+            if 'BioCyc' in COBRA_reaction_I['database_links']:
+                for row in COBRA_reaction_I['database_links']['BioCyc']:
+                    cobra_frame_id = row['id'].replace('META:','')
+                    cobra_frame_ids.append(cobra_frame_id)
+            if 'MetaNetX (MNX) Equation' in COBRA_reaction_I['database_links']:
+                for row in COBRA_reaction_I['database_links']['MetaNetX (MNX) Equation']:
+                    if row['id'] in MetaNetX_reactions_dict_I.keys() and \
+                        'metacyc' in MetaNetX_reactions_dict_I[row['id']].keys():
+                        cobra_metanetx_id = MetaNetX_reactions_dict_I[row['id']]['metacyc']
+                        cobra_metanetx_ids.append(cobra_metanetx_id)
         #remove duplicates
         cobra_ec_numbers = list(set(cobra_ec_numbers))
         cobra_frame_ids = list(set(cobra_frame_ids))
         cobra_metanetx_ids = list(set(cobra_metanetx_ids))
         #match
         match = False;
+        if biocyc_names and \
+            cobra_name in biocyc_names:
+            match = True;
         if biocyc_frame_ids and cobra_frame_ids and \
             len(list(set(biocyc_frame_ids+cobra_frame_ids)))<\
             len(biocyc_frame_ids+cobra_frame_ids):
@@ -286,11 +302,17 @@ class models_BioCyc_dependencies():
         OUTPUT:
         match = boolean
         '''
-        if not 'database_links' in COBRA_metabolite_I.keys() or \
-            COBRA_metabolite_I['database_links'] is None:
-            print('no database_links provided for mapping')
-            return None;
         #parse biocyc metabolite_ids
+        biocyc_names = [];
+        biocyc_names.append(BioCyc_metabolite_I['systematic_name'])
+        biocyc_names.append(BioCyc_metabolite_I['common_name'])
+        biocyc_names.extend(self.convert_bioCycList2List(
+            BioCyc_metabolite_I['names']
+        ));
+        biocyc_names.extend(self.convert_bioCycList2List(
+            BioCyc_metabolite_I['synonyms']
+        ));
+        biocyc_names = list(set([r.lower() for r in biocyc_names if r!='']))
         biocyc_inchi_numbers = self.convert_bioCycList2List(
             BioCyc_metabolite_I['inchi']
         );
@@ -299,28 +321,36 @@ class models_BioCyc_dependencies():
         cobra_inchi_numbers = []
         cobra_frame_ids = []
         cobra_metanetx_ids = []
-        if 'CHEBI' in COBRA_metabolite_I['database_links']:
-            for row in COBRA_metabolite_I['database_links']['CHEBI']:
-                cobra_chebi_number = row['id'].replace('CHEBI:','');
-                if cobra_chebi_number in chebi2inchi_dict_I.keys():
-                    cobra_inchi_number = chebi2inchi_dict_I[cobra_chebi_number]
-                    cobra_inchi_numbers.append(cobra_inchi_number)
-        if 'BioCyc' in COBRA_metabolite_I['database_links']:
-            for row in COBRA_metabolite_I['database_links']['BioCyc']:
-                cobra_frame_id = row['id'].replace('META:','')
-                cobra_frame_ids.append(cobra_frame_id)
-        if 'MetaNetX (MNX) Chemical' in COBRA_metabolite_I['database_links']:
-            for row in COBRA_metabolite_I['database_links']['MetaNetX (MNX) Chemical']:
-                if row['id'] in MetaNetX_metabolites_dict_I.keys() and \
-                    'metacyc' in MetaNetX_metabolites_dict_I[row['id']].keys():
-                    cobra_metanetx_id = MetaNetX_metabolites_dict_I[row['id']]['metacyc']
-                    cobra_metanetx_ids.append(cobra_metanetx_id)
+        cobra_name = COBRA_metabolite_I['met_name'].lower();
+        if not 'database_links' in COBRA_metabolite_I.keys() or \
+            COBRA_metabolite_I['database_links'] is None:
+            print('no database_links provided for mapping')
+        else:
+            if 'CHEBI' in COBRA_metabolite_I['database_links']:
+                for row in COBRA_metabolite_I['database_links']['CHEBI']:
+                    cobra_chebi_number = row['id'].replace('CHEBI:','');
+                    if cobra_chebi_number in chebi2inchi_dict_I.keys():
+                        cobra_inchi_number = chebi2inchi_dict_I[cobra_chebi_number]
+                        cobra_inchi_numbers.append(cobra_inchi_number)
+            if 'BioCyc' in COBRA_metabolite_I['database_links']:
+                for row in COBRA_metabolite_I['database_links']['BioCyc']:
+                    cobra_frame_id = row['id'].replace('META:','')
+                    cobra_frame_ids.append(cobra_frame_id)
+            if 'MetaNetX (MNX) Chemical' in COBRA_metabolite_I['database_links']:
+                for row in COBRA_metabolite_I['database_links']['MetaNetX (MNX) Chemical']:
+                    if row['id'] in MetaNetX_metabolites_dict_I.keys() and \
+                        'metacyc' in MetaNetX_metabolites_dict_I[row['id']].keys():
+                        cobra_metanetx_id = MetaNetX_metabolites_dict_I[row['id']]['metacyc']
+                        cobra_metanetx_ids.append(cobra_metanetx_id)
         #remove duplicates
         cobra_inchi_numbers = list(set(cobra_inchi_numbers))
         cobra_frame_ids = list(set(cobra_frame_ids))
         cobra_metanetx_ids = list(set(cobra_metanetx_ids))
         #match
         match = False;
+        if biocyc_names and \
+            cobra_name in biocyc_names:
+            match = True;
         if biocyc_frame_ids and cobra_frame_ids and \
             len(list(set(biocyc_frame_ids+cobra_frame_ids)))<\
             len(biocyc_frame_ids+cobra_frame_ids):
