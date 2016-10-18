@@ -172,10 +172,16 @@ class models_BioCyc_execute(models_BioCyc_io):
         BioCyc2COBRA_regulators_O = {}
         for e in BioCyc2COBRA_regulators:
             BioCyc2COBRA_regulators_O[e]=[];
-            ##spot checks:
-            #if e == 'Cra DNA-binding transcriptional dual regulator':
-            #    #error mapping fdp_c
-            #    print('check');
+            #spot checks:
+            if e == 'Cra DNA-binding transcriptional dual regulator':
+                #error mapping fdp_c
+                print('check');
+            elif e == 'lactose galactohydrolase':
+                #
+                print('check');
+            elif e == '&beta;-D-galactose':
+                #
+                print('check');
             tmp = self.get_rows_substratesAndParentClassesAndDatabase_modelsBioCycReactions(
                 e,
                 database_I='ECOLI',
@@ -203,6 +209,7 @@ class models_BioCyc_execute(models_BioCyc_io):
                 #query proteins to look up the gene
                 #query compounds to look up the ligands
                 for l in left:
+                    proteins,compounds = [],[];
                     proteins = self.get_rows_nameAndDatabase_modelsBioCycProteins(
                         l,database_I = 'ECOLI'
                         );
@@ -239,6 +246,7 @@ class models_BioCyc_execute(models_BioCyc_io):
                         #ligands['BioCyc_name'].extend(original)
                         ligands['COBRA_met_id'].extend(converted)
                 for r in right:
+                    proteins,compounds = [],[];
                     proteins = self.get_rows_nameAndDatabase_modelsBioCycProteins(
                         r,database_I = 'ECOLI'
                         );
@@ -387,6 +395,8 @@ class models_BioCyc_execute(models_BioCyc_io):
     
         regulation_O = [];
         for i,reg in enumerate(BioCyc_regulation_I):
+            if reg['name'] == 'Regulation of galSp by GalR DNA-binding transcriptional dual regulator':
+                print('check')
             unique = {
                 'regulator':reg['regulator'],
                 'regulated_entity':reg['regulated_entity'],

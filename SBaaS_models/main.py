@@ -83,9 +83,6 @@ biocyc01.initialize_tables()
 
 #regulation_O = biocyc01.getJoin_regulatorsAndRegulatedEntities_database_modelsBioCycRegulationAndAll('ECOLI')
 
-from io_utilities.import_webData import import_webData
-i_webData = import_webData();
-
 from io_utilities.base_importData import base_importData
 from io_utilities.base_exportData import base_exportData
 
@@ -138,8 +135,7 @@ BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
     COBRA_metabolites,
     chebi2inchi,
     MetaNetX_reactions_I = metanetx_reac_xref,
-    MetaNetX_metabolites_I = metanetx_chem_xref,
-    );
+    MetaNetX_metabolites_I = metanetx_chem_xref,);
 
 iobase = base_exportData(BioCyc2COBRA_regulation);
 iobase.write_dict2json(
@@ -148,3 +144,25 @@ iobase.write_dict2json(
 iobase.write_dict2csv(
     pg_settings.datadir_settings['workspace_data']+\
     '/_output/BioCyc2COBRA_regulation.csv');
+
+#iobase = base_importData();
+#iobase.read_csv(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc2COBRA_regulation.csv');
+## iobase.read_json(
+##     pg_settings.datadir_settings['workspace_data']+\
+##     '/_output/BioCyc2COBRA_regulation.json');
+#BioCyc2COBRA_regulation = iobase.data;
+
+#BioCyc2COBRA_TFs = biocyc01.convertAndMap_BioCycTranscriptionFactor2COBRA(
+#    BioCyc2COBRA_regulation_I = BioCyc2COBRA_regulation,
+#    BioCyc_polymerSegments_I = None,
+#    BioCyc_compounds_I = None,
+#    COBRA_metabolites_I = COBRA_metabolites,
+#    chebi2inchi_I = chebi2inchi,
+#    );
+
+#iobase = base_exportData(BioCyc2COBRA_TFs);
+#iobase.write_dict2json(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc2COBRA_TFs.json');

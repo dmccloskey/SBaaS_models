@@ -152,7 +152,10 @@ class models_BioCyc_dependencies():
                     converted.append(conv);
                 else:
                     original.append(component);
-                    converted.append(component);
+                    converted.append(conv);
+            else:
+                original.append(component);
+                converted.append(conv);
         return original,converted;
     def crossMultiple_2lists(
         self,
