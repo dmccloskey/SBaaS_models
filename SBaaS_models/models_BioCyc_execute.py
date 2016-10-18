@@ -136,7 +136,8 @@ class models_BioCyc_execute(models_BioCyc_io):
         BioCyc_dependencies = models_BioCyc_dependencies();
 
         if not BioCyc2COBRA_regulation_I is None and BioCyc2COBRA_regulation_I:
-            BioCyc2COBRA_regulators = list(set([r['regulator'] for r in BioCyc2COBRA_regulation_I]));
+            BioCyc2COBRA_regulators = list(set([r['regulator'] for r in BioCyc2COBRA_regulation_I \
+                if 'DNA-binding transcriptional dual regulator' in r['regulator']]));
         else:
             BioCyc2COBRA_regulators=BioCyc2COBRA_regulation_I;
         if not chebi2inchi_I is None and chebi2inchi_I:
@@ -176,11 +177,11 @@ class models_BioCyc_execute(models_BioCyc_io):
             if e == 'Cra DNA-binding transcriptional dual regulator':
                 #error mapping fdp_c
                 print('check');
-            elif e == 'lactose galactohydrolase':
-                #
+            elif e == 'GalR DNA-binding transcriptional dual regulator':
+                #gene is being identified as a TU
                 print('check');
             elif e == '&beta;-D-galactose':
-                #
+                #not a transcription factor
                 print('check');
             tmp = self.get_rows_substratesAndParentClassesAndDatabase_modelsBioCycReactions(
                 e,
