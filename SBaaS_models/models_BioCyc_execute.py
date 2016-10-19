@@ -493,6 +493,7 @@ class models_BioCyc_execute(models_BioCyc_io):
                     BioCyc2COBRA_func_I=BioCyc_dependencies.map_BioCycReaction2COBRA,
                     BioCyc2COBRA_params_I={
                         'COBRA_reactions_I':COBRA_reactions_I,
+                        'MetaNetX_reactions_dict_I':MetaNetX_reactions_dict_I,
                         'BioCyc_reaction2Genes_dict_I':BioCyc_enzymaticReactions_dict_I,
                     }
                 );

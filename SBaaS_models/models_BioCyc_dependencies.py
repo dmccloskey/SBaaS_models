@@ -186,8 +186,10 @@ class models_BioCyc_dependencies():
         '''
         rxn_id_O = None;
         for row in COBRA_reactions_I:
-            if self.match_BioCycReaction2COBRA(BioCyc_reaction_I,row,
-                                               MetaNetX_reactions_dict_I):
+            if self.match_BioCycReaction2COBRA(
+                BioCyc_reaction_I,row,
+                MetaNetX_reactions_dict_I,
+                BioCyc_reaction2Genes_dict_I):
                 rxn_id_O = row['rxn_id'];
                 break;
         return rxn_id_O;
@@ -249,12 +251,18 @@ class models_BioCyc_dependencies():
                         cobra_metanetx_id = MetaNetX_reactions_dict_I[row['id']]['metacyc']
                         cobra_metanetx_ids.append(cobra_metanetx_id)
         if BioCyc_reaction2Genes_dict_I:
-            biocyc_accessions = BioCyc_reaction2Genes_dict_I[BioCyc_reaction_I['name']]['accession_1'];
-            cobra_accessions = COBRA_reaction_I['genes'];
+            for e in self.convert_bioCycList2List(
+                BioCyc_reaction_I['enzymatic_reaction']
+                ):
+                if e in BioCyc_reaction2Genes_dict_I.keys():
+                    biocyc_accessions.extend(BioCyc_reaction2Genes_dict_I[e]['accession_1']);
+                    cobra_accessions.extend(COBRA_reaction_I['genes']);
         #remove duplicates
         cobra_ec_numbers = list(set(cobra_ec_numbers))
         cobra_frame_ids = list(set(cobra_frame_ids))
         cobra_metanetx_ids = list(set(cobra_metanetx_ids))
+        biocyc_accessions = list(set(biocyc_accessions))
+        cobra_accessions = list(set(cobra_accessions))
         #match
         match = False;
         if biocyc_names and \
