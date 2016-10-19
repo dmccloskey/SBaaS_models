@@ -173,7 +173,8 @@ class models_BioCyc_dependencies():
         self,
         BioCyc_reaction_I,
         COBRA_reactions_I,
-        MetaNetX_reactions_dict_I={}
+        MetaNetX_reactions_dict_I={},
+        BioCyc_reaction2Genes_dict_I={}
         ):
         '''map biocyc reaction to COBRA rxn_id
         INPUT:
@@ -194,12 +195,14 @@ class models_BioCyc_dependencies():
         self,
         BioCyc_reaction_I,
         COBRA_reaction_I,
-        MetaNetX_reactions_dict_I):
+        MetaNetX_reactions_dict_I,
+        BioCyc_reaction2Genes_dict_I):
         '''match biocyc reaction to COBRA rxn_id
         INPUT:
         BioCyc_reaction_I = BioCyc reaction identifier
         COBRA_reactions_I = Dict representation of COBRA reaction information
         MetaNetX_reactions_dict_I = dictionary of {"MNX_ID":{'bigg':,'metacyc':,...},...}
+        BioCyc_reaction2Genes_dict_I = dictionary of {"name":{'gene_ids':,'accession_1':,...},...}
         OUTPUT:
         match = boolean
         '''
@@ -220,10 +223,12 @@ class models_BioCyc_dependencies():
             BioCyc_reaction_I['ec_number']
         );
         biocyc_frame_ids = [BioCyc_reaction_I['frame_id']];
+        biocyc_accessions = [];
         #parse cobra reaction_ids
         cobra_ec_numbers = []
         cobra_frame_ids = []
         cobra_metanetx_ids = []
+        cobra_accessions = []
         cobra_name = COBRA_reaction_I['rxn_name'].lower();
         if not 'database_links' in COBRA_reaction_I.keys() or \
             COBRA_reaction_I['database_links'] is None:
@@ -243,6 +248,9 @@ class models_BioCyc_dependencies():
                         'metacyc' in MetaNetX_reactions_dict_I[row['id']].keys():
                         cobra_metanetx_id = MetaNetX_reactions_dict_I[row['id']]['metacyc']
                         cobra_metanetx_ids.append(cobra_metanetx_id)
+        if BioCyc_reaction2Genes_dict_I:
+            biocyc_accessions = BioCyc_reaction2Genes_dict_I[BioCyc_reaction_I['name']]['accession_1'];
+            cobra_accessions = COBRA_reaction_I['genes'];
         #remove duplicates
         cobra_ec_numbers = list(set(cobra_ec_numbers))
         cobra_frame_ids = list(set(cobra_frame_ids))
@@ -263,6 +271,10 @@ class models_BioCyc_dependencies():
         if biocyc_ec_numbers and cobra_ec_numbers and \
             len(list(set(biocyc_ec_numbers+cobra_ec_numbers)))<\
             len(biocyc_ec_numbers+cobra_ec_numbers):
+                match = True;
+        if biocyc_accessions and cobra_accessions and \
+            len(list(set(biocyc_accessions+cobra_accessions)))<\
+            len(biocyc_accessions+cobra_accessions):
                 match = True;
         return match; 
     def map_BioCycCompound2COBRA(

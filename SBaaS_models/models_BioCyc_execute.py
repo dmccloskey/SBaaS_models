@@ -300,6 +300,7 @@ class models_BioCyc_execute(models_BioCyc_io):
         self,
         BioCyc_regulation_I,
         BioCyc_reactions_I = None,
+        BioCyc_enzymaticReactions2PolymerSegments_I = None,
         BioCyc_compounds_I = None,
         COBRA_reactions_I = None,
         COBRA_metabolites_I = None,
@@ -312,6 +313,10 @@ class models_BioCyc_execute(models_BioCyc_io):
         INPUT:
         BioCyc_regulation_I = listDict
         BioCyc_reactions_I = listDict of models_BioCyc_reactions
+        BioCyc_enzymaticReactions2PolymerSegments_I = listDict of 
+            join between models_BioCyc_enzymaticReactions and 
+            models_BioCyc_polymerSegments
+            (getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments)
         BioCyc_compounds_I = listDict of models_BioCyc_compounds
         COBRA_reactions_I = listDict of models_COBRA_reactions
         COBRA_metabolites_I = listDict of models_COBRA_metabolites
@@ -365,6 +370,26 @@ class models_BioCyc_execute(models_BioCyc_io):
         else:
             BioCyc_reactions_dict_I=BioCyc_reactions_I;
 
+        if not BioCyc_enzymaticReactions2PolymerSegments_I is None and BioCyc_enzymaticReactions2PolymerSegments_I:
+            BioCyc_enzymaticReactions_dict_I = {}
+            for row in BioCyc_enzymaticReactions2PolymerSegments_I:
+                try:
+                    if not row['name'] in BioCyc_enzymaticReactions_dict_I.keys():
+                        BioCyc_enzymaticReactions_dict_I[row['name']]={
+                            'name':'',
+                            'enzyme':[],
+                            'gene_ids':[],
+                            'accession_1':[],
+                            }
+                    BioCyc_enzymaticReactions_dict_I[row['name']]['name']=row['name'];
+                    BioCyc_enzymaticReactions_dict_I[row['name']]['enzyme'].append(row['enzyme']);
+                    BioCyc_enzymaticReactions_dict_I[row['name']]['gene_ids'].extend(row['gene_ids']);
+                    BioCyc_enzymaticReactions_dict_I[row['name']]['accession_1'].extend(row['accession_1']);
+                except Exception as e:
+                    print(e)
+        else:
+            BioCyc_enzymaticReactions_dict_I=BioCyc_enzymaticReactions2PolymerSegments_I;
+
         if not MetaNetX_reactions_I is None and MetaNetX_reactions_I:
             MetaNetX_reactions_dict_I = {}
             for row in MetaNetX_reactions_I:
@@ -398,6 +423,8 @@ class models_BioCyc_execute(models_BioCyc_io):
         for i,reg in enumerate(BioCyc_regulation_I):
             if reg['name'] == 'Regulation of galSp by GalR DNA-binding transcriptional dual regulator':
                 print('check')
+            elif reg['name'] == 'Regulation of ribonucleoside-diphosphate reductase by dATP':
+                print('check');
             unique = {
                 'regulator':reg['regulator'],
                 'regulated_entity':reg['regulated_entity'],
@@ -465,7 +492,8 @@ class models_BioCyc_execute(models_BioCyc_io):
                     BioCyc_components_dict_I=BioCyc_reactions_dict_I,
                     BioCyc2COBRA_func_I=BioCyc_dependencies.map_BioCycReaction2COBRA,
                     BioCyc2COBRA_params_I={
-                        'COBRA_reactions_I':COBRA_reactions_I
+                        'COBRA_reactions_I':COBRA_reactions_I,
+                        'BioCyc_reaction2Genes_dict_I':BioCyc_enzymaticReactions_dict_I,
                     }
                 );
                 tmp['regulated_entities_EcoCyc']=original;

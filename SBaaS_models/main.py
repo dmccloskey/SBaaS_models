@@ -81,6 +81,11 @@ biocyc01.initialize_tables()
 
 #biocyc01.export_GOTermGenes_js('GO:0046034','ECOLI');
 
+#BioCycReactions2Genes = biocyc01.getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+#    names_I='[protein-PII] uridylyltransferase',database_I='ECOLI',
+#    query_I={},
+#    )
+
 #regulation_O = biocyc01.getJoin_regulatorsAndRegulatedEntities_database_modelsBioCycRegulationAndAll('ECOLI')
 
 from io_utilities.base_importData import base_importData
@@ -127,15 +132,33 @@ iobase.read_json(
     '/_output/BioCyc_compounds.json');
 BioCyc_compounds = iobase.data;
 
-#BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
-#    regulation_O,
-#    BioCyc_reactions,
-#    BioCyc_compounds,
-#    COBRA_reactions,
-#    COBRA_metabolites,
-#    chebi2inchi,
-#    MetaNetX_reactions_I = metanetx_reac_xref,
-#    MetaNetX_metabolites_I = metanetx_chem_xref,);
+BioCyc_enzymaticReactions2PolymerSegments = biocyc01.getJoin_genes_enzymaticReactionsAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+    BioCyc_reactions,
+    database_I='ECOLI',
+    query_I={},
+    output_O='listDict',
+    dictColumn_I=None
+    )
+
+iobase = base_exportData(BioCyc_enzymaticReactions2PolymerSegments);
+iobase.write_dict2json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc_enzymaticReactions2PolymerSegments.json');
+iobase.write_dict2csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc_enzymaticReactions2PolymerSegments.csv');
+
+BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
+    BioCyc_regulation_I = regulation_O,
+    BioCyc_reactions_I = BioCyc_reactions,
+    BioCyc_enzymaticReactions2PolymerSegments_I = BioCyc_enzymaticReactions,
+    BioCyc_compounds_I = BioCyc_compounds,
+    COBRA_reactions_I = COBRA_reactions,
+    COBRA_metabolites_I = COBRA_metabolites,
+    chebi2inchi_I = chebi2inchi,
+    MetaNetX_reactions_I = metanetx_reac_xref,
+    MetaNetX_metabolites_I = metanetx_chem_xref,
+    );
 
 #iobase = base_exportData(BioCyc2COBRA_regulation);
 #iobase.write_dict2json(

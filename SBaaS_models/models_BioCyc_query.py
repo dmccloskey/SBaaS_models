@@ -1462,7 +1462,7 @@ class models_BioCyc_query(sbaas_template_query):
     def get_rows_productAndDatabase_modelsBioCycPolymerSegments(
         self,
         product_I,
-        parentClasses_I = '("Transcription-Units")',
+        include_quotes_I=True,
         database_I='ECOLI',
         query_I={},
         output_O='listDict',
@@ -1478,7 +1478,10 @@ class models_BioCyc_query(sbaas_template_query):
             {"table_name":tables[0]},
             ];
 
-        product_where = '%s"%s"%s' %('%',product_I,'%')
+        if include_quotes_I:
+            product_where = '%s"%s"%s' %('%',product_I,'%')
+        else:
+            product_where = '%s%s%s' %('%',product_I,'%')
 
         query['where'] = [
             {"table_name":tables[0],
@@ -2073,6 +2076,59 @@ class models_BioCyc_query(sbaas_template_query):
             'column_name':'name',
             'value':name_I,
             'operator':'LIKE',
+            'connector':'AND'
+                },
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                },
+	    ];
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
+    def get_rows_namesAndDatabase_modelsBioCycEnzymaticReactions(
+        self,names_I,
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT * FROM models_biocyc_enzymaticReactions
+        WHERE enzyme LIKE '''
+        
+        tables = ['models_biocyc_enzymaticReactions']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+
+        names_where = "('{%s}'::text[])" %self.convert_list2string(names_I);
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'value':names_where,
+            'operator':'=ANY',
             'connector':'AND'
                 },
             {"table_name":tables[0],
@@ -3244,4 +3300,94 @@ class models_BioCyc_query(sbaas_template_query):
             for t in tmp:
                 t['transcription_unit'] = tu;
                 data_O.append(t);
+        return data_O;
+    
+    def getJoin_genes_enzymaticReactionsAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+        self,BioCyc_reactions_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''
+        SELECT models_biocyc_enzymaticReactions.enzymes
+         FROM models_biocyc_enzymaticReactions,models_biocyc_proteinFeatures 
+         WHERE models_biocyc_enzymaticReactions.names =ANY 
+        
+        SELECT models_biocyc_polymerSegments.names, .synonyms, .accession_1
+         FROM models_biocyc_polymerSegments,
+         WHERE models_biocyc_polymerSegments.product LIKE '% %'
+         '''
+
+        dependencies = models_BioCyc_dependencies();
+       
+        enzymatic_reactions = [];
+        for row in BioCyc_reactions_I:
+            #"'" will break =ANY or = or LIKE queries
+            enzymatic_reactions.extend([e for e in dependencies.convert_bioCycList2List(row['enzymatic_reaction']) if not "'" in e]);
+        BioCyc_enzymaticReactions2PolymerSegments = self.getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+            enzymatic_reactions,
+            database_I=database_I,
+            query_I=query_I,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I
+            )
+
+        return BioCyc_enzymaticReactions2PolymerSegments;
+    def getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+        self,names_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''
+        SELECT models_biocyc_enzymaticReactions.enzymes
+         FROM models_biocyc_enzymaticReactions,models_biocyc_proteinFeatures 
+         WHERE models_biocyc_enzymaticReactions.names =ANY 
+        
+        SELECT models_biocyc_polymerSegments.names, .synonyms, .accession_1
+         FROM models_biocyc_polymerSegments,
+         WHERE models_biocyc_polymerSegments.product LIKE '% %'
+         '''
+
+        dependencies = models_BioCyc_dependencies();
+        
+        #query enzymes from enzymaticReactions
+        #biocyc_enzymaticReactions = self.get_rows_namesAndDatabase_modelsBioCycEnzymaticReactions(
+        #    names_I,database_I=database_I,
+        #    query_I=query_I,
+        #    );
+        biocyc_enzymaticReactions=[];
+        for name in names_I:
+            tmp = self.get_rows_nameAndDatabase_modelsBioCycEnzymaticReactions(
+                name,database_I=database_I,
+                query_I=query_I,
+                );
+            biocyc_enzymaticReactions.extend(tmp);
+
+        #query genes from polymerSegments by products
+        biocyc_polymerSegments_parsed = [];
+        for row in biocyc_enzymaticReactions:
+            gene_ids = [];
+            accession_1 = [];
+            biocyc_polymerSegments = self.get_rows_productAndDatabase_modelsBioCycPolymerSegments(
+                row['enzyme'],
+                include_quotes_I=False,
+                database_I='ECOLI',
+            );
+            synonyms = [e for row in biocyc_polymerSegments for e in dependencies.convert_bioCycList2List(row['synonyms'])]
+            names = [row['name'] for row in biocyc_polymerSegments]
+            gene_ids = [e for e in list(set(synonyms+names)) if e!='']
+            accession_1 = [e for row in biocyc_polymerSegments for e in dependencies.convert_bioCycList2List(row['accession_1']) if e!='']
+            biocyc_polymerSegments_parsed.append({
+                'name':row['name'],
+                'enzyme':row['enzyme'],
+                'gene_ids':gene_ids,
+                'accession_1':accession_1,
+                })
+
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        data_O = [];
+        for row in biocyc_polymerSegments_parsed:
+            if not row in data_O:
+                data_O.append(row);
+
         return data_O;
