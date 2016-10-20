@@ -258,7 +258,7 @@ class models_BioCyc_dependencies():
                     biocyc_accessions.extend(BioCyc_reaction2Genes_dict_I[e]['accession_1']);
                     cobra_accessions.extend(COBRA_reaction_I['genes']);
             #spot check            
-            if '6-phosphofructokinase' in self.convert_bioCycList2List(
+            if 'ADP-sugar pyrophosphatase' in self.convert_bioCycList2List(
                     BioCyc_reaction_I['enzymatic_reaction']
                     ):
                 print('Check')
