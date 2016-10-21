@@ -144,12 +144,22 @@ class models_BioCyc_dependencies():
                     components = BioCyc_components_dict_I[component]
                     for component_dict in components:
                         conv = BioCyc2COBRA_func_I(component_dict,**BioCyc2COBRA_params_I);
-                        original.append(component);
-                        converted.append(conv);
+                        if conv:
+                            for c in conv:
+                                original.append(component);
+                                converted.append(c);
+                        else:
+                            original.append(component);
+                            converted.append(conv);
                 elif type(component)==type({}):
                     conv = BioCyc2COBRA_func_I(component,**BioCyc2COBRA_params_I);
-                    original.append(component);
-                    converted.append(conv);
+                    if conv:
+                        for c in conv:
+                            original.append(component);
+                            converted.append(c);
+                    else:
+                        original.append(component);
+                        converted.append(conv);
                 else:
                     original.append(component);
                     converted.append(conv);
@@ -182,17 +192,17 @@ class models_BioCyc_dependencies():
         COBRA_reactions_I = listDict representation of COBRA reaction information
         MetaNetX_reactions_dict_I = dictionary of {"MNX_ID":{'bigg':,'metacyc':,...},...}
         OUTPUT:
-        rxn_id_O = string, rxn_id
+        rxn_id_O = [] of string, rxn_id
         '''
-        rxn_id_O = None;
+        rxn_ids_O = [];
         for row in COBRA_reactions_I:
             if self.match_BioCycReaction2COBRA(
                 BioCyc_reaction_I,row,
                 MetaNetX_reactions_dict_I,
                 BioCyc_reaction2Genes_dict_I):
-                rxn_id_O = row['rxn_id'];
-                break;
-        return rxn_id_O;
+                rxn_ids_O.append(row['rxn_id']);
+                #break;
+        return rxn_ids_O;
     def match_BioCycReaction2COBRA(
         self,
         BioCyc_reaction_I,
@@ -308,15 +318,15 @@ class models_BioCyc_dependencies():
         OUTPUT:
         met_id_O = string, met_id
         '''
-        met_id_O = None;
+        met_ids_O = [];
         for row in COBRA_metabolites_I:
             if self.match_BioCycMetabolite2COBRA(
                 BioCyc_metabolite_I,row,
                 chebi2inchi_dict_I,
                 MetaNetX_metabolites_dict_I):
-                met_id_O = row['met_id'];
+                met_ids_O.append(row['met_id']);
                 break;
-        return met_id_O;
+        return met_ids_O;
     def match_BioCycMetabolite2COBRA(
         self,
         BioCyc_metabolite_I,

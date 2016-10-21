@@ -148,31 +148,31 @@ BioCyc_compounds = iobase.data;
 #    pg_settings.datadir_settings['workspace_data']+\
 #    '/_output/BioCyc_enzymaticReactions2PolymerSegments.csv');
 
-iobase = base_importData();
-iobase.read_json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_enzymaticReactions2PolymerSegments.json');
-BioCyc_enzymaticReactions2PolymerSegments = iobase.data;
+#iobase = base_importData();
+#iobase.read_json(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc_enzymaticReactions2PolymerSegments.json');
+#BioCyc_enzymaticReactions2PolymerSegments = iobase.data;
 
-BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
-    BioCyc_regulation_I = regulation_O,
-    BioCyc_reactions_I = BioCyc_reactions,
-    BioCyc_enzymaticReactions2PolymerSegments_I = BioCyc_enzymaticReactions2PolymerSegments,
-    BioCyc_compounds_I = BioCyc_compounds,
-    COBRA_reactions_I = COBRA_reactions,
-    COBRA_metabolites_I = COBRA_metabolites,
-    chebi2inchi_I = chebi2inchi,
-    MetaNetX_reactions_I = metanetx_reac_xref,
-    MetaNetX_metabolites_I = metanetx_chem_xref,
-    );
+#BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
+#    BioCyc_regulation_I = regulation_O,
+#    BioCyc_reactions_I = BioCyc_reactions,
+#    BioCyc_enzymaticReactions2PolymerSegments_I = BioCyc_enzymaticReactions2PolymerSegments,
+#    BioCyc_compounds_I = BioCyc_compounds,
+#    COBRA_reactions_I = COBRA_reactions,
+#    COBRA_metabolites_I = COBRA_metabolites,
+#    chebi2inchi_I = chebi2inchi,
+#    MetaNetX_reactions_I = metanetx_reac_xref,
+#    MetaNetX_metabolites_I = metanetx_chem_xref,
+#    );
 
-iobase = base_exportData(BioCyc2COBRA_regulation);
-iobase.write_dict2json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation.json');
-iobase.write_dict2csv(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation.csv');
+#iobase = base_exportData(BioCyc2COBRA_regulation);
+#iobase.write_dict2json(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc2COBRA_regulation.json');
+#iobase.write_dict2csv(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc2COBRA_regulation.csv');
 
 iobase = base_importData();
 iobase.read_json(
