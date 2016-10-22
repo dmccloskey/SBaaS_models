@@ -308,6 +308,49 @@ class models_COBRA_dependencies():
         net_rxn_I = net rxn
         individual_rxns_I = list of individual reactions'''
         return;
+    def convert_convertNetRxn2IndividualRxns(
+        self,
+        net_rxn_I = '',
+        pathway_dict_I = {},
+        convert2Irreversible_I = False
+        ):
+        '''Convert a pathway to a list of reactions
+        INPUT:
+        net_rxn_I = string, net_rxn_id or pathway_id
+        pathway_dict_I = {pathway_id:{reactions:[],stoichiometry:[]}}
+        convert2Irreversible_I = boolean,
+            if True: stoichiometry will be used to add a _reverse if -1
+            else False: only the reactions will be returned
+        OUTPUT:
+        reactions_O = [], reaction_ids
+        EXAMPLE:
+        for rxn_id in convert_pathway2Reactions(
+            UMPSYN_aerobic',
+            pathway2Reactions,
+            convert2Irreversible_I = True
+            ):
+            print(rxn_id)
+        EXAMPLE OUTPUT:
+        ASPCT
+        DHORTS_reverse
+        DHORD2
+        ORPT_reverse
+        OMPDC
+        '''
+        reactions_O = [];
+        if net_rxn_I in pathway_dict_I.keys():
+            if convert2Irreversible_I:
+                for i,s in enumerate(pathway_dict_I[net_rxn_I]['stoichiometry']):
+                    if s<0:
+                        reaction = '%s_reverse'%pathway_dict_I[net_rxn_I]['reactions'][i]
+                    else:
+                        reaction = pathway_dict_I[net_rxn_I]['reactions'][i]
+                    reactions_O.append(reaction)
+            else:
+                reactions_O = pathway_dict_I[net_rxn_I]['reactions'];
+        else:
+            print("pathway not in pathway dictionary")
+        return reactions_O;
     def writeAndLoad_modelTable(self,cobra_model_table_I):
         '''Load a cobra model from models table'''
                            
@@ -653,6 +696,51 @@ class models_COBRA_dependencies():
                         #    tmp1['left']=rxn['rxn_id'];
                         #    tmp1['right']=product;
 
+        return cobra_model_graph_O;
+    def convert_modelReactionsTable2InteractionGraph(
+            self,rxns_I,
+            weights_I=None,
+            attributes_I=[],
+            exclusion_list_I=[]):
+        '''Convert a cobramodel to an interaction graph
+        INPUT:
+        rxns_I: list of cobra model reactions [list]
+        attributes_I = list of other keys to add in to each element of the output list [string]
+        exclusion_list_I = [list of nodes to exclude]
+        OUTPUT:
+        cobra_model_graph_O: [{left:[string],right:[string],mode:[string]}]
+        '''
+        cobra_model_graph_O = [];
+        for rxn in rxns_I:
+            for reactant in rxn['reactants_ids']:
+                if reactant in exclusion_list_I: continue;
+                for product in rxn['products_ids']:
+                    if product in exclusion_list_I: continue;
+                    tmp = {};
+                    # add in other attributes
+                    if attributes_I:
+                        for attr in attributes_I:
+                            tmp[attr]=rx[attr];
+                    # define the left and right nodes
+                    tmp1 = copy.copy(tmp)
+                    tmp1['mode']='+';
+                    tmp1['left']=reactant;
+                    tmp1['right']=rxn['rxn_id'];
+                    cobra_model_graph_O.append(tmp1);
+                    tmp1 = copy.copy(tmp)
+                    tmp1['mode']='-';
+                    tmp1['left']=rxn['rxn_id'];
+                    tmp1['right']=product;
+                    cobra_model_graph_O.append(tmp1);
+                    ## check for reversibility
+                    #if rxn['reversibility']:
+                    #    tmp1 = copy.copy(tmp)
+                    #    tmp1['left']=product;
+                    #    tmp1['right']=rxn['rxn_id'];
+                    #    cobra_model_graph_O.append(tmp1);
+                    #    tmp1 = copy.copy(tmp)
+                    #    tmp1['left']=rxn['rxn_id'];
+                    #    tmp1['right']=reactant;
         return cobra_model_graph_O;
 
 

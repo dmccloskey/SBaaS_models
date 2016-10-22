@@ -91,46 +91,46 @@ biocyc01.initialize_tables()
 from io_utilities.base_importData import base_importData
 from io_utilities.base_exportData import base_exportData
 
-iobase = base_importData();
-iobase.read_json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_regulation.json');
-regulation_O = iobase.data;
+#iobase = base_importData();
+#iobase.read_json(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc_regulation.json');
+#regulation_O = iobase.data;
 
-COBRA_reactions = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
-    'iJO1366')
-COBRA_metabolites = cobra01.get_rows_modelID_dataStage02PhysiologyModelMetabolites(
-    'iJO1366')
+#COBRA_reactions = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
+#    'iJO1366')
+#COBRA_metabolites = cobra01.get_rows_modelID_dataStage02PhysiologyModelMetabolites(
+#    'iJO1366')
 
-iobase = base_importData();
-iobase.read_json(
-   pg_settings.datadir_settings['workspace_data']+\
-   '/_output/chebiId_inchi_3star.json');
-chebi2inchi = iobase.data;
+#iobase = base_importData();
+#iobase.read_json(
+#   pg_settings.datadir_settings['workspace_data']+\
+#   '/_output/chebiId_inchi_3star.json');
+#chebi2inchi = iobase.data;
 
-iobase = base_importData();
-iobase.read_json(
-   pg_settings.datadir_settings['workspace_data']+\
-   '/_output/metanetx_reac_xref.json');
-metanetx_reac_xref = iobase.data;
+#iobase = base_importData();
+#iobase.read_json(
+#   pg_settings.datadir_settings['workspace_data']+\
+#   '/_output/metanetx_reac_xref.json');
+#metanetx_reac_xref = iobase.data;
 
-iobase = base_importData();
-iobase.read_json(
-   pg_settings.datadir_settings['workspace_data']+\
-   '/_output/metanetx_chem_xref.json');
-metanetx_chem_xref = iobase.data;
+#iobase = base_importData();
+#iobase.read_json(
+#   pg_settings.datadir_settings['workspace_data']+\
+#   '/_output/metanetx_chem_xref.json');
+#metanetx_chem_xref = iobase.data;
 
-iobase = base_importData();
-iobase.read_json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_reactions.json');
-BioCyc_reactions = iobase.data;
+#iobase = base_importData();
+#iobase.read_json(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc_reactions.json');
+#BioCyc_reactions = iobase.data;
 
-iobase = base_importData();
-iobase.read_json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_compounds.json');
-BioCyc_compounds = iobase.data;
+#iobase = base_importData();
+#iobase.read_json(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc_compounds.json');
+#BioCyc_compounds = iobase.data;
 
 #BioCyc_enzymaticReactions2PolymerSegments = biocyc01.getJoin_genes_enzymaticReactionsAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
 #    BioCyc_reactions,
@@ -193,101 +193,9 @@ BioCyc_compounds = iobase.data;
 #    pg_settings.datadir_settings['workspace_data']+\
 #    '/_output/BioCyc2COBRA_TFs.json');
 
-iobase = base_importData();
-iobase.read_json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_all.json');
-BioCyc2COBRA_regulation_all = iobase.data;
-
-iobase = base_importData();
-iobase.read_csv(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/BioCyc2COBRA_met_mappings.csv');
-BioCyc2COBRA_met_mappings = {};
-for d in iobase.data:
-    if not d['BioCyc'] in BioCyc2COBRA_met_mappings.keys():
-        BioCyc2COBRA_met_mappings[d['BioCyc']]=[];
-    BioCyc2COBRA_met_mappings[d['BioCyc']].append(d)
-
-iobase = base_importData();
-iobase.read_csv(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/BioCyc2COBRA_rxn_mappings.csv');
-BioCyc2COBRA_rxn_mappings = {};
-for d in iobase.data:
-    if not d['BioCyc'] in BioCyc2COBRA_rxn_mappings.keys():
-        BioCyc2COBRA_rxn_mappings[d['BioCyc']]=[];
-    BioCyc2COBRA_rxn_mappings[d['BioCyc']].append(d)
-    
-import copy
-
-#add in metabolite mappings 
-BioCyc2COBRA_regulation_all_1 = [];
-for d in BioCyc2COBRA_regulation_all:
-    d['used_']=True;
-    d['comment_']=None;  
-    #metabolites
-    if d['left_EcoCyc'] in BioCyc2COBRA_met_mappings.keys():
-        for row in BioCyc2COBRA_met_mappings[d['left_EcoCyc']]:
-            tmp = copy.copy(d) 
-            #check for null mappings
-            if row['used_'] is None or row['used_'] == "":
-                if d not in BioCyc2COBRA_regulation_all_1:
-                    BioCyc2COBRA_regulation_all_1.append(d);                
-            #check for false mappings
-            elif row['BiGG']==tmp['left_COBRA'] and \
-                (row['used_'] == "FALSE" or not row['used_']):
-                tmp['used_']=row['used_']
-                tmp['comment_']=row['comment_']
-                BioCyc2COBRA_regulation_all_1.append(tmp);
-            #add in true mappings
-            elif row['used_'] == "TRUE" or row['used_']:
-                tmp['left_COBRA']=row['BiGG']
-                tmp['comment_']=row['comment_']
-                BioCyc2COBRA_regulation_all_1.append(tmp);
-            else:
-                if d not in BioCyc2COBRA_regulation_all_1:
-                    BioCyc2COBRA_regulation_all_1.append(d);
-    else:
-        BioCyc2COBRA_regulation_all_1.append(d);
-#add in reaction mappings
-BioCyc2COBRA_regulation_all_2 = [];
-for d in BioCyc2COBRA_regulation_all_1:             
-    #reactions
-    if d['right_EcoCyc'] in BioCyc2COBRA_rxn_mappings.keys():
-        for row in BioCyc2COBRA_rxn_mappings[d['right_EcoCyc']]:
-            tmp = copy.copy(d)   
-            #check for null mappings
-            if row['used_'] is None or row['used_'] == "":
-                if d not in BioCyc2COBRA_regulation_all_2:
-                    BioCyc2COBRA_regulation_all_2.append(d);  
-            #check for false mappings
-            elif row['BiGG']==tmp['right_COBRA'] and \
-                (row['used_'] == "FALSE" or not row['used_']):
-                tmp['used_']=row['used_']
-                tmp['comment_']=row['comment_']
-                BioCyc2COBRA_regulation_all_2.append(tmp);
-            #add in true mappings
-            elif row['used_'] == "TRUE" or row['used_']:
-                tmp['right_COBRA']=row['BiGG']
-                tmp['comment_']=row['comment_']
-                BioCyc2COBRA_regulation_all_2.append(tmp);
-            else:
-                if d not in BioCyc2COBRA_regulation_all_2:
-                    BioCyc2COBRA_regulation_all_2.append(d);
-    else:
-        BioCyc2COBRA_regulation_all_2.append(d);
-#remove duplicate entries
-#(NOTE: only works because each dictionary is constructed identically)
-BioCyc2COBRA_regulation_all = [];
-for row in BioCyc2COBRA_regulation_all_2:
-    if not row in BioCyc2COBRA_regulation_all:
-        BioCyc2COBRA_regulation_all.append(row);
-
-iobase = base_exportData(BioCyc2COBRA_regulation_all);
-iobase.write_dict2json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_all_mapped.json');
-iobase.write_dict2csv(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_all_mapped.csv');
+reactions,metabolites = cobra01.execute_convertNetRxns2IndividualRxns(
+    model_id_netRxns_I='150526_iDM2015',
+    model_id_template_I='iJO1366_ALEWt_irreversible',
+    pathway_model_id_I='iJO1366_ALEWt_irreversible',
+    convert2Irreversible_I = False
+    );

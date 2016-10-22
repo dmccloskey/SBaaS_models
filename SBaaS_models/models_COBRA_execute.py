@@ -190,8 +190,9 @@ class models_COBRA_execute(models_COBRA_io):
             models_dict_O[model_id]=cobra_model;
         return models_dict_O;
     def convert_lumpedRxns2IndividualRxns(self,
-                          model_id_template_I,pathway_model_id_I,
-                          reactions_I):
+                model_id_template_I,
+                pathway_model_id_I,
+                reactions_I):
         '''make the model
         INPUT:
         model_id_I = string, model_id for net reactions
@@ -210,8 +211,8 @@ class models_COBRA_execute(models_COBRA_io):
         for rxn in reactions_I:
             if rxn['rxn_id'] in pathways.keys():
                 for rxn_id in pathways[rxn['rxn_id']]['reactions']:
-                    if rxn_id == 'AIRC3':
-                        print('check');
+                    #if rxn_id == 'AIRC3':
+                    #    print('check');
                     # lookup the reaction
                     rxn_tmp = {};
                     rxn_tmp = self.get_row_modelIDAndRxnID_dataStage02PhysiologyModelReactions(model_id_template_I,rxn_id);
@@ -226,6 +227,71 @@ class models_COBRA_execute(models_COBRA_io):
                         print('rxn_id ' + rxn_id + ' not found in template model.');
             else:
                 reactions_O.append(rxn);
+        return reactions_O,metabolites_O;
+    def execute_convertNetRxns2IndividualRxns(self,
+                model_id_netRxns_I,
+                model_id_template_I,
+                pathway_model_id_I,
+                convert2Irreversible_I = False):
+        '''make the model
+        INPUT:
+        model_id_I = string, model_id for net reactions
+        reactions_I = [{}] from modelReactions table
+        OUTPUT:
+        reactions_O = [{}] without lumped reactions
+        metabolites_O = [{}] metabolites for reactions
+
+        '''
+        
+        reactions_O = [];
+        metabolites_O = [];
+        # get the model reactions and metabolites from the database
+        reactions = [];
+        metabolites = [];
+        reactions = self.get_rows_modelID_dataStage02PhysiologyModelReactions(model_id_netRxns_I);
+        metabolites = self.get_rows_modelID_dataStage02PhysiologyModelMetabolites(model_id_netRxns_I);
+        met_ids = [met['met_id'] for met in metabolites]
+        # get the model reactions and metabolites for the template from the database
+        reactions_template = self.get_rows_modelID_dataStage02PhysiologyModelReactions(model_id_template_I);
+        reactions_template_dict = {rxn['rxn_id']:rxn for rxn in reactions_template}
+        metabolites_template = self.get_rows_modelID_dataStage02PhysiologyModelMetabolites(model_id_template_I);
+        metabolites_template_dict = {met['met_id']:met for met in metabolites_template}
+        # get the pathways
+        pathways = {};
+        pathways = self.get_rowsDict_modelID_dataStage02PhysiologyModelPathways(pathway_model_id_I);
+        for rxn in reactions:
+            if rxn['rxn_id'] in pathways.keys():
+                rxn_ids = self.convert_convertNetRxn2IndividualRxns(
+                    rxn['rxn_id'],
+                    pathway_dict_I = pathways,
+                    convert2Irreversible_I = convert2Irreversible_I
+                    )
+                for rxn_id in rxn_ids:
+                    #if rxn_id == 'AIRC3':
+                    #    print('check');
+                    # lookup the reaction
+                    rxn_tmp = {};
+                    #rxn_tmp = self.get_row_modelIDAndRxnID_dataStage02PhysiologyModelReactions(model_id_template_I,rxn_id);
+                    if rxn_id in reactions_template_dict.keys():
+                        rxn_tmp = reactions_template_dict[rxn_id];
+                    if rxn_tmp:
+                        reactions_O.append(rxn_tmp);
+                        # lookup the metabolites
+                        for met_id in rxn_tmp['products_ids']+rxn_tmp['reactants_ids']:
+                            met_tmp = {};
+                            #met_tmp = self.get_row_modelIDAndMetID_dataStage02PhysiologyModelMetabolites(model_id_template_I,met_id);
+                            if met_id in metabolites_template_dict.keys():
+                                met_tmp = metabolites_template_dict[met_id];
+                            if met_tmp:
+                                if not met_id in met_ids:
+                                    metabolites_O.append(met_tmp)
+                            else:
+                                print('met_id ' + met_id + ' not found in template model.');
+                    else:
+                        print('rxn_id ' + rxn_id + ' not found in template model.');
+            else:
+                reactions_O.append(rxn);
+        metabolites_O = metabolites + metabolites_O;
         return reactions_O,metabolites_O;
     def map_rxnIDs2GeneNames(
         self,model_id_I,rxn_ids_I=[],
