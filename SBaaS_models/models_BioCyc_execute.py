@@ -109,7 +109,14 @@ class models_BioCyc_execute(models_BioCyc_io):
                 };
                 tmp.update(unique);
                 BioCyc2COBRA_regulation_all.append(tmp);
-        return BioCyc2COBRA_regulation_all;
+
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        data_O = [];
+        for row in BioCyc2COBRA_regulation_all:
+            if not row in data_O:
+                data_O.append(row);
+        return data_O;
 
     def convertAndMap_BioCycTranscriptionFactor2COBRA(
         self,
@@ -425,6 +432,8 @@ class models_BioCyc_execute(models_BioCyc_io):
                 print('check')
             elif reg['name'] == 'Regulation of ribonucleoside-diphosphate reductase by dATP':
                 print('check');
+            elif reg['regulated_entity_enzymaticReaction'] == 'formate dehydrogenase':
+                print('check');
             unique = {
                 'regulator':reg['regulator'],
                 'regulated_entity':reg['regulated_entity'],
@@ -546,4 +555,11 @@ class models_BioCyc_execute(models_BioCyc_io):
                 tmp1.update(COBRA_flattened[i])
                 tmp1.update(unique)        
                 regulation_O.append(tmp1);
-        return regulation_O;
+                        
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        data_O = [];
+        for row in regulation_O:
+            if not row in data_O:
+                data_O.append(row);
+        return data_O;

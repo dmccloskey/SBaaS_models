@@ -130,12 +130,12 @@ class models_BioCyc_dependencies():
         original = [];
         converted = [];
         for component in BioCyc_components_I:
-            if component == 'fructose 1,6-bisphosphate':
-                print('check');
-            elif component == 'glutamine synthetase':
-                print('check');
-            elif component == 'isocitrate lyase':
-                print('check');
+            #if component == 'fructose 1,6-bisphosphate':
+            #    print('check');
+            #elif component == 'glutamine synthetase':
+            #    print('check');
+            #elif component == 'isocitrate lyase':
+            #    print('check');
             conv = None;
             if not BioCyc2COBRA_func_I is None:
                 component_dict = None;
@@ -267,13 +267,13 @@ class models_BioCyc_dependencies():
                 if e in BioCyc_reaction2Genes_dict_I.keys():
                     biocyc_accessions.extend(BioCyc_reaction2Genes_dict_I[e]['accession_1']);
                     cobra_accessions.extend(COBRA_reaction_I['genes']);
-            #spot check            
-            if 'ADP-sugar pyrophosphatase' in self.convert_bioCycList2List(
-                    BioCyc_reaction_I['enzymatic_reaction']
-                    ):
-                print('Check')
-            if not biocyc_accessions:
-                print('Check')
+            ##spot check            
+            #if 'ADP-sugar pyrophosphatase' in self.convert_bioCycList2List(
+            #        BioCyc_reaction_I['enzymatic_reaction']
+            #        ):
+            #    print('Check')
+            #if not biocyc_accessions:
+            #    print('Check')
         #remove duplicates
         cobra_ec_numbers = list(set(cobra_ec_numbers))
         cobra_frame_ids = list(set(cobra_frame_ids))

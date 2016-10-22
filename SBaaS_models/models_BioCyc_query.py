@@ -3323,6 +3323,7 @@ class models_BioCyc_query(sbaas_template_query):
         for row in BioCyc_reactions_I:
             #"'" will break =ANY or = or LIKE queries
             enzymatic_reactions.extend([e for e in dependencies.convert_bioCycList2List(row['enzymatic_reaction']) if not "'" in e]);
+        enzymatic_reactions = list(set(enzymatic_reactions));
         BioCyc_enzymaticReactions2PolymerSegments = self.getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
             enzymatic_reactions,
             database_I=database_I,
