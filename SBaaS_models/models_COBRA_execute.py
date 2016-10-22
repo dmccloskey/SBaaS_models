@@ -261,14 +261,12 @@ class models_COBRA_execute(models_COBRA_io):
         pathways = self.get_rowsDict_modelID_dataStage02PhysiologyModelPathways(pathway_model_id_I);
         for rxn in reactions:
             if rxn['rxn_id'] in pathways.keys():
-                rxn_ids = self.convert_convertNetRxn2IndividualRxns(
+                rxn_ids = self.convert_netRxn2IndividualRxns(
                     rxn['rxn_id'],
                     pathway_dict_I = pathways,
                     convert2Irreversible_I = convert2Irreversible_I
                     )
                 for rxn_id in rxn_ids:
-                    #if rxn_id == 'AIRC3':
-                    #    print('check');
                     # lookup the reaction
                     rxn_tmp = {};
                     #rxn_tmp = self.get_row_modelIDAndRxnID_dataStage02PhysiologyModelReactions(model_id_template_I,rxn_id);

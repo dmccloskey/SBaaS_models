@@ -308,7 +308,7 @@ class models_COBRA_dependencies():
         net_rxn_I = net rxn
         individual_rxns_I = list of individual reactions'''
         return;
-    def convert_convertNetRxn2IndividualRxns(
+    def convert_netRxn2IndividualRxns(
         self,
         net_rxn_I = '',
         pathway_dict_I = {},
@@ -351,6 +351,36 @@ class models_COBRA_dependencies():
         else:
             print("pathway not in pathway dictionary")
         return reactions_O;
+    def convert_netRxnDict2rxnNetRxnDict(
+        self,
+        pathway_dict_I = {},
+        convert2Irreversible_I = False
+        ):
+        '''Convert a pathway to reaction dictionary
+        to a reaction to pathway dictionary
+        INPUT:
+        pathway_dict_I = {pathway_id:{reactions:[],stoichiometry:[]}}
+        convert2Irreversible_I = boolean,
+            if True: stoichiometry will be used to add a _reverse if -1
+            else False: only the reactions will be returned
+        OUTPUT:
+        reactions2Pathway = {rxn_id:{'pathways':[],stoichiometry:[]}}
+        '''
+        reactions2Pathway = {};
+        for pathway in pathway_dict_I.keys():
+            rxns = self.convert_netRxn2IndividualRxns(
+                pathway,
+                pathway_dict_I = pathway_dict_I,
+                convert2Irreversible_I = convert2Irreversible_I
+                )
+            for r in rxns:
+                if not r in reactions2Pathway.keys():
+                    reactions2Pathway[r] = {
+                        'pathways':[],
+                        'stoichiometry':[]};
+                reactions2Pathway[r]['pathways'].append(pathway);
+                reactions2Pathway[r]['stoichiometry'].append(1.0);
+        return reactions2Pathway;
     def writeAndLoad_modelTable(self,cobra_model_table_I):
         '''Load a cobra model from models table'''
                            

@@ -193,9 +193,23 @@ from io_utilities.base_exportData import base_exportData
 #    pg_settings.datadir_settings['workspace_data']+\
 #    '/_output/BioCyc2COBRA_TFs.json');
 
-reactions,metabolites = cobra01.execute_convertNetRxns2IndividualRxns(
-    model_id_netRxns_I='150526_iDM2015',
-    model_id_template_I='iJO1366_ALEWt_irreversible',
-    pathway_model_id_I='iJO1366_ALEWt_irreversible',
-    convert2Irreversible_I = False
+#reactions,metabolites = cobra01.execute_convertNetRxns2IndividualRxns(
+#    model_id_netRxns_I='150526_iDM2015',
+#    model_id_template_I='iJO1366_ALEWt_irreversible',
+#    pathway_model_id_I='iJO1366_ALEWt_irreversible',
+#    convert2Irreversible_I = False
+#    );
+
+# get the model reactions from table
+netRxns = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
+    '150526_iDM2015'
     );
+# get pathways from table (needed for conversion from iJO1366 to iDM2015)
+pathway2Reactions = cobra01.get_rowsDict_modelID_dataStage02PhysiologyModelPathways(
+    'iJO1366')
+# create a reverse pathway lookup dict
+reactions2Pathway = cobra01.convert_netRxnDict2rxnNetRxnDict(
+    pathway_dict_I = pathway2Reactions,
+    convert2Irreversible_I = True
+    )
+print('check')
