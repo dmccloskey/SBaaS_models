@@ -200,10 +200,36 @@ from io_utilities.base_exportData import base_exportData
 #    convert2Irreversible_I = False
 #    );
 
+## get the model reactions from table
+#netRxns = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
+#    '150526_iDM2015'
+#    );
+## get pathways from table (needed for conversion from iJO1366 to iDM2015)
+#pathway2Reactions = cobra01.get_rowsDict_modelID_dataStage02PhysiologyModelPathways(
+#    'iJO1366')
+## create a reverse pathway lookup dict
+#reactions2Pathway = cobra01.convert_netRxnDict2rxnNetRxnDict(
+#    pathway_dict_I = pathway2Reactions,
+#    convert2Irreversible_I = True
+#    )
+#print('check')
+
+iobase = base_importData();
+iobase.read_json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc2COBRA_regulation_all_mapped.json');
+BioCyc2COBRA_regulation_all = iobase.data;
+
 # get the model reactions from table
-netRxns = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
+reactions = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
     '150526_iDM2015'
     );
+#convert rxns list to directed graph
+interactionGraph = cobra01.convert_modelReactionsTable2InteractionGraph(
+    reactions,
+    attributes_I={},
+    exclusion_list_I=[]);
+
 # get pathways from table (needed for conversion from iJO1366 to iDM2015)
 pathway2Reactions = cobra01.get_rowsDict_modelID_dataStage02PhysiologyModelPathways(
     'iJO1366')
@@ -212,4 +238,28 @@ reactions2Pathway = cobra01.convert_netRxnDict2rxnNetRxnDict(
     pathway_dict_I = pathway2Reactions,
     convert2Irreversible_I = True
     )
-print('check')
+
+#BioCyc dependencies
+from SBaaS_models.models_BioCyc_dependencies import models_BioCyc_dependencies
+biocyc01_dep = models_BioCyc_dependencies();
+#get mapped and unmapped components
+components,components_EcoCyc = biocyc01_dep.get_componentsFromBioCyc2COBRAregulation(
+    BioCyc2COBRA_regulation_all)
+
+#get alternative gene_ids from unmapped components
+biocyc_genes,gene_ids,accession_1 = biocyc01.get_alternativeGeneIdentifiers_modelsBioCycPolymerSegments(
+    components_EcoCyc)
+
+data_O = biocyc01.join_BioCyc2COBRAregulationWithCOBRAinteractions(
+    BioCyc2COBRA_regulation = BioCyc2COBRA_regulation_all,
+    COBRA_interaction = interactionGraph,
+    BioCyc_alt_id = biocyc_genes,
+    COBRA_alt_id = reactions2Pathway
+    )
+iobase = base_exportData(data_O);
+iobase.write_dict2json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc2COBRA_regulationAndInteraction.json');
+iobase.write_dict2csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc2COBRA_regulationAndInteraction.csv');

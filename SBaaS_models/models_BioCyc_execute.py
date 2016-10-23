@@ -9,6 +9,212 @@ class models_BioCyc_execute(models_BioCyc_io):
         ''' '''
         pass;
 
+    def join_BioCyc2COBRAregulationWithCOBRAinteractions(self,
+        BioCyc2COBRA_regulation,
+        COBRA_interaction,
+        BioCyc_alt_id = {},
+        COBRA_alt_id = {},
+        deformat_met_id_I = True
+        ):
+        '''
+        return a list mapped and unmapped components
+        INPUT:
+        BioCyc2COBRA_regulation =  [{left:[string],right:[string],mode:[string],
+                parent_classes:[string],mechanism:[string]},
+                {left_EcoCyc:[string],right_EcoCyc:[string]]
+        COBRA_interaction =  [{left:[string],right:[string],mode:[string],
+                parent_classes:[string],mechanism:[string]}]
+        BioCyc_alt_id = {name:{'synonym':[],'common_name':[],'accession_1':[],'accession_2':[]}}
+            output from get_alternativeGeneIdentifiers_modelsBioCycPolymerSegments
+        COBRA_alt_id = {rxn_id:'pathways':[],'stoichiometry':[]}}
+            output from get_rowsDict_modelID_dataStage02PhysiologyModelPathways
+                        convert_netRxnDict2rxnNetRxnDict
+        OUTPUT:
+        data_O = [{left:[string],right:[string],mode:[string],parent_classes:[string]}]
+        '''
+
+        from .models_COBRA_dependencies import models_COBRA_dependencies
+        COBRA_dependencies = models_COBRA_dependencies();
+
+        def deformatAndConvert_metID(met_id_I):
+            met_id_O = None;
+            if '_c' in met_id_I:
+                met_id_O = COBRA_dependencies.deformat_metid(met_id_I)\
+                    .replace('13dpg','23dpg')\
+                    .replace('3pg','Pool_2pg_3pg')\
+                    .replace('glycogen','adpglc')\
+                    .replace('uacgam','udpglcur');
+            return met_id_O;
+
+        data_O = []
+        #BioCyc
+        for row in BioCyc2COBRA_regulation:
+            unique = {
+                    #'left':row['left'],
+                    #'right':row['right'],
+                    'mode':row['mode'],
+                    'mechanism':row['mechanism'],
+                    'name':row['name'],
+                    'parent_classes':row['parent_classes']
+                };
+            #BioCyc Left identifiers
+            left_ids=[];
+            if type(row['left'])!=type([]) and row['left'] in BioCyc_alt_id.keys():
+                left_alt_ids = list(set(BioCyc_alt_id[row['left']]['common_name']+\
+                                        BioCyc_alt_id[row['left']]['synonym']+\
+                                        [row['left']]))
+                left_ids.extend(left_alt_ids)          
+            elif type(row['left_EcoCyc'])!=type([]) and row['left_EcoCyc'] in BioCyc_alt_id.keys():
+                left_alt_ids = list(set(BioCyc_alt_id[row['left_EcoCyc']]['common_name']+\
+                                        BioCyc_alt_id[row['left_EcoCyc']]['synonym']+\
+                                        [row['left_EcoCyc']]))
+                left_ids.extend(left_alt_ids)
+            elif type(row['left'])!=type([]) and row['left'] in COBRA_alt_id.keys():
+                left_ids.append(row['left']) 
+                left_ids.extend(COBRA_alt_id[row['left']]['pathways'])
+            elif row['left']:
+                left_ids.append(row['left'])  
+            if row['left']:
+                met_id_left = deformatAndConvert_metID(row['left'])
+                if met_id_left:
+                    left_ids.append(met_id_left)
+            #BioCyc Right identifiers
+            right_ids=[];
+            if type(row['right'])!=type([]) and row['right'] in BioCyc_alt_id.keys():
+                right_alt_ids = list(set(BioCyc_alt_id[row['right']]['common_name']+\
+                                        BioCyc_alt_id[row['right']]['synonym']+\
+                                        [row['right']]))
+                right_ids.extend(right_alt_ids)          
+            elif type(row['right_EcoCyc'])!=type([]) and row['right_EcoCyc'] in BioCyc_alt_id.keys():
+                right_alt_ids = list(set(BioCyc_alt_id[row['right_EcoCyc']]['common_name']+\
+                                        BioCyc_alt_id[row['right_EcoCyc']]['synonym']+\
+                                        [row['right_EcoCyc']]))
+                right_ids.extend(right_alt_ids)
+            elif type(row['right'])!=type([]) and row['right'] in COBRA_alt_id.keys():
+                right_ids.append(row['right'])
+                right_ids.extend(COBRA_alt_id[row['right']]['pathways'])
+            elif row['right']:
+                right_ids.append(row['right'])  
+            if row['right']:
+                met_id_right = deformatAndConvert_metID(row['right'])
+                if met_id_right:
+                    right_ids.append(met_id_right)
+            #Flatten left and right identifiers
+            for l in left_ids:
+                for r in right_ids:
+                    tmp = {}
+                    tmp['left'] = l;
+                    tmp['right'] = r;
+                    tmp.update(unique);
+                    data_O.append(tmp);
+        #COBRA
+        for row in COBRA_interaction:
+            unique = {
+                    #'left':row['left'],
+                    #'right':row['right'],
+                    'mode':row['mode'],
+                    'mechanism':row['mechanism'],
+                    'name':'',
+                    'parent_classes':row['parent_classes']
+                };
+            left_ids=[];
+            left_ids.append(row['left']) 
+            met_id_left = deformatAndConvert_metID(row['left'])
+            if met_id_left:
+                left_ids.append(met_id_left)
+            right_ids=[];
+            right_ids.append(row['right']) 
+            met_id_right = deformatAndConvert_metID(row['right'])
+            if met_id_right:
+                right_ids.append(met_id_right)
+            #Flatten left and right identifiers
+            for l in left_ids:
+                for r in right_ids:
+                    tmp = {}
+                    tmp['left'] = l;
+                    tmp['right'] = r;
+                    tmp.update(unique);
+                    data_O.append(tmp);
+        return data_O;
+
+    def update_BioCyc2COBRAregulation_mappings(self,
+        BioCyc2COBRA_regulation_all,
+        BioCyc2COBRA_met_mappings,
+        BioCyc2COBRA_rxn_mappings
+        ):
+        '''Update the listDict of BioCyc2COBRA_regulation with
+        manually mapped entries
+        INPUT:
+        BioCyc2COBRA_regulation_all = [{}]
+        BioCyc2COBRA_met_mappings = [{'BioCyc':[string],'BiGG':[string],'used_':[boolean],'comment_':[string]}]
+        BioCyc2COBRA_rxn_mappings = [{'BioCyc':[string],'BiGG':[string],'used_':[boolean],'comment_':[string]}]
+        OUTPUT:
+        BioCyc2COBRA_regulation_mapped = [{}]
+        '''
+        #add in metabolite mappings
+        BioCyc2COBRA_regulation_all_1 = [];
+        for d in BioCyc2COBRA_regulation_all:
+            d['used_']=True;
+            d['comment_']=None;  
+            #metabolites
+            if d['left_EcoCyc'] in BioCyc2COBRA_met_mappings.keys():
+                for row in BioCyc2COBRA_met_mappings[d['left_EcoCyc']]:
+                    tmp = copy.copy(d) 
+                    #check for null mappings
+                    if row['used_'] is None or row['used_'] == "":
+                        if d not in BioCyc2COBRA_regulation_all_1:
+                            BioCyc2COBRA_regulation_all_1.append(d);                
+                    #check for false mappings
+                    elif row['BiGG']==tmp['left'] and \
+                        (row['used_'] == "FALSE" or not row['used_']):
+                        tmp['used_']=row['used_']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_1.append(tmp);
+                    #add in true mappings
+                    elif row['used_'] == "TRUE" or row['used_']:
+                        tmp['left']=row['BiGG']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_1.append(tmp);
+                    else:
+                        if d not in BioCyc2COBRA_regulation_all_1:
+                            BioCyc2COBRA_regulation_all_1.append(d);
+            else:
+                BioCyc2COBRA_regulation_all_1.append(d);
+        #add in reaction mappings
+        BioCyc2COBRA_regulation_all_2 = [];
+        for d in BioCyc2COBRA_regulation_all_1:             
+            #reactions
+            if d['right_EcoCyc'] in BioCyc2COBRA_rxn_mappings.keys():
+                for row in BioCyc2COBRA_rxn_mappings[d['right_EcoCyc']]:
+                    tmp = copy.copy(d)   
+                    #check for null mappings
+                    if row['used_'] is None or row['used_'] == "":
+                        if d not in BioCyc2COBRA_regulation_all_2:
+                            BioCyc2COBRA_regulation_all_2.append(d);  
+                    #check for false mappings
+                    elif row['BiGG']==tmp['right'] and \
+                        (row['used_'] == "FALSE" or not row['used_']):
+                        tmp['used_']=row['used_']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_2.append(tmp);
+                    #add in true mappings
+                    elif row['used_'] == "TRUE" or row['used_']:
+                        tmp['right']=row['BiGG']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_2.append(tmp);
+                    else:
+                        if d not in BioCyc2COBRA_regulation_all_2:
+                            BioCyc2COBRA_regulation_all_2.append(d);
+            else:
+                BioCyc2COBRA_regulation_all_2.append(d);
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        BioCyc2COBRA_regulation_all = [];
+        for row in BioCyc2COBRA_regulation_all_2:
+            if not row in BioCyc2COBRA_regulation_all:
+                BioCyc2COBRA_regulation_all.append(row);
+        return BioCyc2COBRA_regulation_all;
+
     def join_BioCyc2COBRA_regulationAndTranscriptionFactors(
         self,
         BioCyc2COBRA_regulation_I,

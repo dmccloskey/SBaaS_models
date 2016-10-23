@@ -404,3 +404,112 @@ class models_BioCyc_dependencies():
             len(biocyc_inchi_numbers+cobra_inchi_numbers):
                 match = True;
         return match; 
+    def update_BioCyc2COBRAregulation_mappings(self,
+        BioCyc2COBRA_regulation_all,
+        BioCyc2COBRA_met_mappings,
+        BioCyc2COBRA_rxn_mappings
+        ):
+        '''Update the listDict of BioCyc2COBRA_regulation with
+        manually mapped entries
+        INPUT:
+        BioCyc2COBRA_regulation_all = [{}]
+        BioCyc2COBRA_met_mappings = [{'BioCyc':[string],'BiGG':[string],'used_':[boolean],'comment_':[string]}]
+        BioCyc2COBRA_rxn_mappings = [{'BioCyc':[string],'BiGG':[string],'used_':[boolean],'comment_':[string]}]
+        OUTPUT:
+        BioCyc2COBRA_regulation_mapped = [{}]
+        '''
+        #add in metabolite mappings
+        BioCyc2COBRA_regulation_all_1 = [];
+        for d in BioCyc2COBRA_regulation_all:
+            d['used_']=True;
+            d['comment_']=None;  
+            #metabolites
+            if d['left_EcoCyc'] in BioCyc2COBRA_met_mappings.keys():
+                for row in BioCyc2COBRA_met_mappings[d['left_EcoCyc']]:
+                    tmp = copy.copy(d) 
+                    #check for null mappings
+                    if row['used_'] is None or row['used_'] == "":
+                        if d not in BioCyc2COBRA_regulation_all_1:
+                            BioCyc2COBRA_regulation_all_1.append(d);                
+                    #check for false mappings
+                    elif row['BiGG']==tmp['left'] and \
+                        (row['used_'] == "FALSE" or not row['used_']):
+                        tmp['used_']=row['used_']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_1.append(tmp);
+                    #add in true mappings
+                    elif row['used_'] == "TRUE" or row['used_']:
+                        tmp['left']=row['BiGG']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_1.append(tmp);
+                    else:
+                        if d not in BioCyc2COBRA_regulation_all_1:
+                            BioCyc2COBRA_regulation_all_1.append(d);
+            else:
+                BioCyc2COBRA_regulation_all_1.append(d);
+        #add in reaction mappings
+        BioCyc2COBRA_regulation_all_2 = [];
+        for d in BioCyc2COBRA_regulation_all_1:             
+            #reactions
+            if d['right_EcoCyc'] in BioCyc2COBRA_rxn_mappings.keys():
+                for row in BioCyc2COBRA_rxn_mappings[d['right_EcoCyc']]:
+                    tmp = copy.copy(d)   
+                    #check for null mappings
+                    if row['used_'] is None or row['used_'] == "":
+                        if d not in BioCyc2COBRA_regulation_all_2:
+                            BioCyc2COBRA_regulation_all_2.append(d);  
+                    #check for false mappings
+                    elif row['BiGG']==tmp['right'] and \
+                        (row['used_'] == "FALSE" or not row['used_']):
+                        tmp['used_']=row['used_']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_2.append(tmp);
+                    #add in true mappings
+                    elif row['used_'] == "TRUE" or row['used_']:
+                        tmp['right']=row['BiGG']
+                        tmp['comment_']=row['comment_']
+                        BioCyc2COBRA_regulation_all_2.append(tmp);
+                    else:
+                        if d not in BioCyc2COBRA_regulation_all_2:
+                            BioCyc2COBRA_regulation_all_2.append(d);
+            else:
+                BioCyc2COBRA_regulation_all_2.append(d);
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        BioCyc2COBRA_regulation_all = [];
+        for row in BioCyc2COBRA_regulation_all_2:
+            if not row in BioCyc2COBRA_regulation_all:
+                BioCyc2COBRA_regulation_all.append(row);
+        return BioCyc2COBRA_regulation_all;
+    def get_componentsFromBioCyc2COBRAregulation(self,
+        BioCyc2COBRA_regulation_all):
+        '''
+        return a list mapped and unmapped components
+        INPUT:
+        BioCyc2COBRA_regulation_all = [{}]
+        OUTPUT:
+        components = []
+        components_EcoCyc = []
+        '''
+        #EcoCyc regulation components
+        left_components = [];
+        left_components_EcoCyc = [];
+        for row in BioCyc2COBRA_regulation_all:
+            if row['left']:
+                left_components.append(row['left']);
+            else:
+                left_components_EcoCyc.append(row['left_EcoCyc']);  
+        right_components = [];
+        right_components_EcoCyc = [];
+        for row in BioCyc2COBRA_regulation_all:
+            if row['right']:
+                right_components.append(row['right']);
+            else:
+                right_components_EcoCyc.append(row['right_EcoCyc']); 
+        # print(len(left_components))
+        # print(len(left_components_EcoCyc))
+        # print(len(right_components))
+        # print(len(right_components_EcoCyc))
+        components = left_components+right_components;
+        components_EcoCyc = left_components_EcoCyc+right_components_EcoCyc;
+        return components,components_EcoCyc;

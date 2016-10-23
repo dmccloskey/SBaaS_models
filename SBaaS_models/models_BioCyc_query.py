@@ -2954,6 +2954,96 @@ class models_BioCyc_query(sbaas_template_query):
 
         return regulation_O;
     
+    def getJoin_genes_enzymaticReactionsAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+        self,BioCyc_reactions_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''
+        SELECT models_biocyc_enzymaticReactions.enzymes
+         FROM models_biocyc_enzymaticReactions,models_biocyc_proteinFeatures 
+         WHERE models_biocyc_enzymaticReactions.names =ANY 
+        
+        SELECT models_biocyc_polymerSegments.names, .synonyms, .accession_1
+         FROM models_biocyc_polymerSegments,
+         WHERE models_biocyc_polymerSegments.product LIKE '% %'
+         '''
+
+        dependencies = models_BioCyc_dependencies();
+       
+        enzymatic_reactions = [];
+        for row in BioCyc_reactions_I:
+            #"'" will break =ANY or = or LIKE queries
+            enzymatic_reactions.extend([e for e in dependencies.convert_bioCycList2List(row['enzymatic_reaction']) if not "'" in e]);
+        enzymatic_reactions = list(set(enzymatic_reactions));
+        BioCyc_enzymaticReactions2PolymerSegments = self.getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+            enzymatic_reactions,
+            database_I=database_I,
+            query_I=query_I,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I
+            )
+
+        return BioCyc_enzymaticReactions2PolymerSegments;
+    def getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
+        self,names_I,database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''
+        SELECT models_biocyc_enzymaticReactions.enzymes
+         FROM models_biocyc_enzymaticReactions,models_biocyc_proteinFeatures 
+         WHERE models_biocyc_enzymaticReactions.names =ANY 
+        
+        SELECT models_biocyc_polymerSegments.names, .synonyms, .accession_1
+         FROM models_biocyc_polymerSegments,
+         WHERE models_biocyc_polymerSegments.product LIKE '% %'
+         '''
+
+        dependencies = models_BioCyc_dependencies();
+        
+        #query enzymes from enzymaticReactions
+        #biocyc_enzymaticReactions = self.get_rows_namesAndDatabase_modelsBioCycEnzymaticReactions(
+        #    names_I,database_I=database_I,
+        #    query_I=query_I,
+        #    );
+        biocyc_enzymaticReactions=[];
+        for name in names_I:
+            tmp = self.get_rows_nameAndDatabase_modelsBioCycEnzymaticReactions(
+                name,database_I=database_I,
+                query_I=query_I,
+                );
+            biocyc_enzymaticReactions.extend(tmp);
+
+        #query genes from polymerSegments by products
+        biocyc_polymerSegments_parsed = [];
+        for row in biocyc_enzymaticReactions:
+            gene_ids = [];
+            accession_1 = [];
+            biocyc_polymerSegments = self.get_rows_productAndDatabase_modelsBioCycPolymerSegments(
+                row['enzyme'],
+                include_quotes_I=False,
+                database_I='ECOLI',
+            );
+            synonyms = [e for row in biocyc_polymerSegments for e in dependencies.convert_bioCycList2List(row['synonyms'])]
+            names = [row['name'] for row in biocyc_polymerSegments]
+            gene_ids = [e for e in list(set(synonyms+names)) if e!='']
+            accession_1 = [e for row in biocyc_polymerSegments for e in dependencies.convert_bioCycList2List(row['accession_1']) if e!='']
+            biocyc_polymerSegments_parsed.append({
+                'name':row['name'],
+                'enzyme':row['enzyme'],
+                'gene_ids':gene_ids,
+                'accession_1':accession_1,
+                })
+
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        data_O = [];
+        for row in biocyc_polymerSegments_parsed:
+            if not row in data_O:
+                data_O.append(row);
+
+        return data_O;
     #Parsed queries only
     def getParsed_genesAndPathwaysAndReactions_superPathwayAndDatabase_modelsBioCycPathways(
         self,super_pathway_I,database_I='ECOLI',
@@ -3043,7 +3133,7 @@ class models_BioCyc_query(sbaas_template_query):
 
         dependencies = models_BioCyc_dependencies();
 
-        data_O = [];
+        data = [];
         biocyc_polymerSegments = self.get_rows_namesAndDatabase_modelsBioCycPolymerSegments(
             names_I,database_I='ECOLI',
             query_I={},
@@ -3059,7 +3149,7 @@ class models_BioCyc_query(sbaas_template_query):
                 tmp['accession_1'] = polymerSegment['accession_1'];
                 tmp['accession_2'] = polymerSegment['accession_2'];
                 tmp['synonym'] = synonym;
-                data_O.append(tmp);
+                data.append(tmp);
             #if synonyms and synonyms[0]!='':
             #    for synonym in synonyms:
             #        tmp = {};
@@ -3077,6 +3167,13 @@ class models_BioCyc_query(sbaas_template_query):
             #    tmp['accession_2'] = polymerSegment['accession_2'];
             #    tmp['synonym'] = [];
             #    data_O.append(tmp);
+        
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        data_O = [];
+        for row in data:
+            if not row in data_O:
+                data_O.append(row);
 
         return data_O;
 
@@ -3307,93 +3404,50 @@ class models_BioCyc_query(sbaas_template_query):
                 data_O.append(t);
         return data_O;
     
-    def getJoin_genes_enzymaticReactionsAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
-        self,BioCyc_reactions_I,database_I='ECOLI',
-        query_I={},
-        output_O='listDict',
-        dictColumn_I=None):
+    #OTHER
+    def get_alternativeGeneIdentifiers_modelsBioCycPolymerSegments(self,
+        components_EcoCyc):
+        '''Return alternative gene ids and accession numbers
+        from a list of BioCyc components
+        INPUT:
+        components_EcoCyc = [] of strings
+        OUTPUT:
+        biocyc_genes = [{}] of mapped rows
+        gene_ids = [] of strings of all gene_ids
+        accession_1 = [] of strings of all accession_1 entries
         '''
-        SELECT models_biocyc_enzymaticReactions.enzymes
-         FROM models_biocyc_enzymaticReactions,models_biocyc_proteinFeatures 
-         WHERE models_biocyc_enzymaticReactions.names =ANY 
-        
-        SELECT models_biocyc_polymerSegments.names, .synonyms, .accession_1
-         FROM models_biocyc_polymerSegments,
-         WHERE models_biocyc_polymerSegments.product LIKE '% %'
-         '''
-
-        dependencies = models_BioCyc_dependencies();
-       
-        enzymatic_reactions = [];
-        for row in BioCyc_reactions_I:
-            #"'" will break =ANY or = or LIKE queries
-            enzymatic_reactions.extend([e for e in dependencies.convert_bioCycList2List(row['enzymatic_reaction']) if not "'" in e]);
-        enzymatic_reactions = list(set(enzymatic_reactions));
-        BioCyc_enzymaticReactions2PolymerSegments = self.getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
-            enzymatic_reactions,
-            database_I=database_I,
-            query_I=query_I,
-            output_O=output_O,
-            dictColumn_I=dictColumn_I
-            )
-
-        return BioCyc_enzymaticReactions2PolymerSegments;
-    def getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
-        self,names_I,database_I='ECOLI',
-        query_I={},
-        output_O='listDict',
-        dictColumn_I=None):
-        '''
-        SELECT models_biocyc_enzymaticReactions.enzymes
-         FROM models_biocyc_enzymaticReactions,models_biocyc_proteinFeatures 
-         WHERE models_biocyc_enzymaticReactions.names =ANY 
-        
-        SELECT models_biocyc_polymerSegments.names, .synonyms, .accession_1
-         FROM models_biocyc_polymerSegments,
-         WHERE models_biocyc_polymerSegments.product LIKE '% %'
-         '''
-
-        dependencies = models_BioCyc_dependencies();
-        
-        #query enzymes from enzymaticReactions
-        #biocyc_enzymaticReactions = self.get_rows_namesAndDatabase_modelsBioCycEnzymaticReactions(
-        #    names_I,database_I=database_I,
-        #    query_I=query_I,
-        #    );
-        biocyc_enzymaticReactions=[];
-        for name in names_I:
-            tmp = self.get_rows_nameAndDatabase_modelsBioCycEnzymaticReactions(
-                name,database_I=database_I,
-                query_I=query_I,
-                );
-            biocyc_enzymaticReactions.extend(tmp);
-
-        #query genes from polymerSegments by products
-        biocyc_polymerSegments_parsed = [];
-        for row in biocyc_enzymaticReactions:
-            gene_ids = [];
-            accession_1 = [];
-            biocyc_polymerSegments = self.get_rows_productAndDatabase_modelsBioCycPolymerSegments(
-                row['enzyme'],
-                include_quotes_I=False,
-                database_I='ECOLI',
-            );
-            synonyms = [e for row in biocyc_polymerSegments for e in dependencies.convert_bioCycList2List(row['synonyms'])]
-            names = [row['name'] for row in biocyc_polymerSegments]
-            gene_ids = [e for e in list(set(synonyms+names)) if e!='']
-            accession_1 = [e for row in biocyc_polymerSegments for e in dependencies.convert_bioCycList2List(row['accession_1']) if e!='']
-            biocyc_polymerSegments_parsed.append({
-                'name':row['name'],
-                'enzyme':row['enzyme'],
-                'gene_ids':gene_ids,
-                'accession_1':accession_1,
-                })
-
-        #remove duplicate entries
-        #(NOTE: only works because each dictionary is constructed identically)
-        data_O = [];
-        for row in biocyc_polymerSegments_parsed:
-            if not row in data_O:
-                data_O.append(row);
-
-        return data_O;
+        #filter out any "non-gene" ids and ids that will break the query
+        genes = list(set([g for g in components_EcoCyc if g!='' and not ',' in g and not '-' in g and len(g)<4]))
+        #join list of genes with alternative identifiers
+        biocyc_genes = self.getParsed_genesAndAccessionsAndSynonyms_namesAndDatabase_modelsBioCycPolymerSegments(
+            names_I=genes,
+            database_I='ECOLI',
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None);
+        #reorganize into a dict for fast traversal
+        biocyc_genes_O = {};
+        for g in biocyc_genes:
+            if not g['gene'] in biocyc_genes_O.keys():
+                biocyc_genes_O[g['gene']]={'synonym':[],
+                          'common_name':[],
+                          'accession_1':[],
+                          'accession_2':[],
+                          }
+            if g['synonym']: biocyc_genes_O[g['gene']]['synonym'].append(g['synonym'])
+            if g['common_name']: biocyc_genes_O[g['gene']]['common_name'].append(g['common_name'])
+            if g['accession_1']: biocyc_genes_O[g['gene']]['accession_1'].append(g['accession_1'])
+            if g['accession_2']: biocyc_genes_O[g['gene']]['accession_2'].append(g['accession_2'])
+        #remove duplicates
+        for k,v in biocyc_genes_O.items():
+            v['synonym'] = list(set(v['synonym']))
+            v['common_name'] = list(set(v['common_name']))
+            v['accession_1'] = list(set(v['accession_1']))
+            v['accession_2'] = list(set(v['accession_2']))
+        gene_ids = list(set(genes + [g['synonym'] for g in biocyc_genes if g['synonym']]));
+        accession_1 = list(set([g['accession_1'] for g in biocyc_genes if g['accession_1']!='']));
+        #print(len(gene_ids))
+        #print(len(biocyc_genes))
+        #print(len(genes))
+        #print(len(accession_1))
+        return biocyc_genes_O,gene_ids,accession_1

@@ -738,7 +738,8 @@ class models_COBRA_dependencies():
         attributes_I = list of other keys to add in to each element of the output list [string]
         exclusion_list_I = [list of nodes to exclude]
         OUTPUT:
-        cobra_model_graph_O: [{left:[string],right:[string],mode:[string]}]
+        cobra_model_graph_O: [{left:[string],right:[string],mode:[string],
+            parent_classes:[string],mechanism:[string]}]
         '''
         cobra_model_graph_O = [];
         for rxn in rxns_I:
@@ -754,10 +755,14 @@ class models_COBRA_dependencies():
                     # define the left and right nodes
                     tmp1 = copy.copy(tmp)
                     tmp1['mode']='+';
+                    tmp1['parent_classes']='Reactant-Reaction-Interaction';
+                    tmp1['mechanism']=None;
                     tmp1['left']=reactant;
                     tmp1['right']=rxn['rxn_id'];
                     cobra_model_graph_O.append(tmp1);
                     tmp1 = copy.copy(tmp)
+                    tmp1['parent_classes']='Reaction-Product-Interaction';
+                    tmp1['mechanism']=None;
                     tmp1['mode']='-';
                     tmp1['left']=rxn['rxn_id'];
                     tmp1['right']=product;
