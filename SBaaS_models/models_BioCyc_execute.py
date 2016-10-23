@@ -30,82 +30,87 @@ class models_BioCyc_execute(models_BioCyc_io):
                 'regulated_entity':row['regulated_entity'],
                 'mode':row['mode'],
                 'mechanism':row['mechanism'],
-                'name':row['name']
+                'name':row['name'],
+                'parent_classes':row['parent_classes']
             }
             tmp = {
                 'left_EcoCyc':[],
-                'left_COBRA':[],
+                'left':[],
                 'right_EcoCyc':[],
-                'right_COBRA':[],
+                'right':[],
             }
             if row['regulator'] in BioCyc2COBRA_TFs_I.keys():
                 for reg in BioCyc2COBRA_TFs_I[row['regulator']]:
                     for i in range(len(reg['ligands']['BioCyc_name'])):
                         tmp = {
                             'left_EcoCyc':reg['ligands']['BioCyc_name'][i],
-                            'left_COBRA':reg['ligands']['COBRA_met_id'][i],
+                            'left':reg['ligands']['COBRA_met_id'][i],
                             'right_EcoCyc':reg['tu'],
-                            'right_COBRA':reg['tu'],
+                            'right':None,
                             'regulator':row['regulator'],
                             'regulated_entity':row['regulated_entity'],
                             'mode':reg['mode'],
-                            'mechanism':'ligand-transcription factor-binding',
+                            'mechanism':row['mechanism'],
+                            'parent_classes':'("Protein-Ligand-Binding-Reactions")',
                             'name':row['name']
                         };
                         BioCyc2COBRA_regulation_all.append(tmp);
                     for i in range(len(reg['genes'])):
                         tmp = {
                             'left_EcoCyc':reg['genes'][i],
-                            'left_COBRA':reg['genes'][i],
+                            'left':reg['genes'][i],
                             'right_EcoCyc':reg['tu'],
-                            'right_COBRA':reg['tu'],
+                            'right':None,
                             'regulator':row['regulator'],
                             'regulated_entity':row['regulated_entity'],
                             'mode':reg['mode'],
-                            'mechanism':'gene-transcription factor',
+                            'mechanism':row['mechanism'],
+                            'parent_classes':'("DNA-to-Protein")',
                             'name':row['name']
                         };
                         BioCyc2COBRA_regulation_all.append(tmp);
                     for i in range(len(reg['ligands']['BioCyc_name'])):
                         tmp = {
                             'left_EcoCyc':reg['ligands']['BioCyc_name'][i],
-                            'left_COBRA':reg['ligands']['COBRA_met_id'][i],
+                            'left':reg['ligands']['COBRA_met_id'][i],
                             'right_EcoCyc':row['regulated_entities_EcoCyc'],
-                            'right_COBRA':row['regulated_entities_COBRA'],
+                            'right':row['regulated_entities_COBRA'],
                             'regulator':row['regulator'],
                             'regulated_entity':row['regulated_entity'],
                             'mode':reg['mode']+row['mode'],
-                            'mechanism':'ligand-transcription factor-gene',
+                            'mechanism':row['mechanism'],
+                            'parent_classes':'("Protein-Ligand-DNA-Binding-Reactions")',
                             'name':row['name']
                         };
                         BioCyc2COBRA_regulation_all.append(tmp);
                     for i in range(len(reg['genes'])):
                         tmp = {
                             'left_EcoCyc':reg['genes'][i],
-                            'left_COBRA':reg['genes'][i],
+                            'left':reg['genes'][i],
                             'right_EcoCyc':row['regulated_entities_EcoCyc'],
-                            'right_COBRA':row['regulated_entities_COBRA'],
+                            'right':row['regulated_entities_COBRA'],
                             'regulator':row['regulator'],
                             'regulated_entity':row['regulated_entity'],
+                            'mechanism':row['mechanism'],
                             'mode':row['mode'],
-                            'mechanism':'gene-transcription factor-gene',
+                            'parent_classes':'("DNA-to-Protein-DNA-Binding-Reactions")',
                             'name':row['name']
                         };
                         BioCyc2COBRA_regulation_all.append(tmp);
                 tmp = {
                     'left_EcoCyc':row['regulators_EcoCyc'],
-                    'left_COBRA':row['regulators_COBRA'],
+                    'left':row['regulators_COBRA'],
                     'right_EcoCyc':row['regulated_entities_EcoCyc'],
-                    'right_COBRA':row['regulated_entities_COBRA'],
+                    'right':row['regulated_entities_COBRA'],
                 };
                 tmp.update(unique);
                 BioCyc2COBRA_regulation_all.append(tmp);
             else:
                 tmp = {
                     'left_EcoCyc':row['regulators_EcoCyc'],
-                    'left_COBRA':row['regulators_COBRA'],
+                    'left':row['regulators_COBRA'],
                     'right_EcoCyc':row['regulated_entities_EcoCyc'],
-                    'right_COBRA':row['regulated_entities_COBRA'],
+                    'right':row['regulated_entities_COBRA'],
                 };
                 tmp.update(unique);
                 BioCyc2COBRA_regulation_all.append(tmp);
@@ -428,18 +433,19 @@ class models_BioCyc_execute(models_BioCyc_io):
     
         regulation_O = [];
         for i,reg in enumerate(BioCyc_regulation_I):
-            if reg['name'] == 'Regulation of galSp by GalR DNA-binding transcriptional dual regulator':
-                print('check')
-            elif reg['name'] == 'Regulation of ribonucleoside-diphosphate reductase by dATP':
-                print('check');
-            elif reg['regulated_entity_enzymaticReaction'] == 'formate dehydrogenase':
-                print('check');
+            #if reg['name'] == 'Regulation of galSp by GalR DNA-binding transcriptional dual regulator':
+            #    print('check')
+            #elif reg['name'] == 'Regulation of ribonucleoside-diphosphate reductase by dATP':
+            #    print('check');
+            #elif reg['regulated_entity_enzymaticReaction'] == 'formate dehydrogenase':
+            #    print('check');
             unique = {
                 'regulator':reg['regulator'],
                 'regulated_entity':reg['regulated_entity'],
                 'mode':reg['mode'],
                 'mechanism':reg['mechanism'],
-                'name':reg['name']
+                'name':reg['name'],
+                'parent_classes':reg['parent_classes']
             }
             tmp = {
                 'regulators_EcoCyc':[],

@@ -2803,7 +2803,9 @@ class models_BioCyc_query(sbaas_template_query):
             if reg['regulator']=='' and reg['regulated_entity']=='':continue;
             #remove keys
             for key in list(reg.keys())[:]:
-                if key not in ['mode','regulator','regulated_entity','mechanism','name']:
+                if key not in ['mode','regulator','regulated_entity',
+                               'mechanism','name',
+                               'parent_classes']:
                     del reg[key];
             #add in keys to fill
             #reg.update({
@@ -2817,7 +2819,8 @@ class models_BioCyc_query(sbaas_template_query):
             #    'regulator_RNA':'',
             #    'regulator_compound':''})
             unique1 = (reg['regulator'],reg['regulated_entity'],
-                       reg['mode'],reg['mechanism'],reg['name'])
+                       reg['mode'],reg['mechanism'],reg['name'],
+                       reg['parent_classes'])
             #unique1 = reg['name']
             if not unique1 in regulation_1.keys():
                 regulation_1[unique1]={};
@@ -2862,7 +2865,9 @@ class models_BioCyc_query(sbaas_template_query):
                 database_I = database_I)
             for reps in regulated_entities_polymerSegments:
                 products = dependencies.convert_bioCycList2List(reps['product'])
-                regulation_1[unique1]['regulated_entity_gene'].append(reps['name']);
+                genes = dependencies.parse_transcriptionUnit(reps['name']);
+                regulation_1[unique1]['regulated_entity_gene'].extend(genes);
+                #regulation_1[unique1]['regulated_entity_gene'].append(reps['name']);
                 regulation_1[unique1]['regulated_entity_product'].extend(products);
                 #for product in products:
                 #    #gene/promoter
