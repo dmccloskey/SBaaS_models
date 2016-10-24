@@ -510,6 +510,6 @@ class models_BioCyc_dependencies():
         # print(len(left_components_EcoCyc))
         # print(len(right_components))
         # print(len(right_components_EcoCyc))
-        components = left_components+right_components;
-        components_EcoCyc = left_components_EcoCyc+right_components_EcoCyc;
+        components = list(set(left_components+right_components));
+        components_EcoCyc = list(set(left_components_EcoCyc+right_components_EcoCyc));
         return components,components_EcoCyc;

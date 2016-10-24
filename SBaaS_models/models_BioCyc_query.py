@@ -3417,7 +3417,7 @@ class models_BioCyc_query(sbaas_template_query):
         accession_1 = [] of strings of all accession_1 entries
         '''
         #filter out any "non-gene" ids and ids that will break the query
-        genes = list(set([g for g in components_EcoCyc if g!='' and not ',' in g and not '-' in g and len(g)<4]))
+        genes = list(set([g for g in components_EcoCyc if g!='' and not ',' in g and not '-' in g and len(g)<=4]))
         #join list of genes with alternative identifiers
         biocyc_genes = self.getParsed_genesAndAccessionsAndSynonyms_namesAndDatabase_modelsBioCycPolymerSegments(
             names_I=genes,

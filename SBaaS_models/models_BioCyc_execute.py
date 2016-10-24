@@ -1,6 +1,8 @@
 ﻿from .models_BioCyc_io import models_BioCyc_io
 from .models_BioCyc_dependencies import models_BioCyc_dependencies
 
+import copy
+
 class models_BioCyc_execute(models_BioCyc_io):
 
     def execute_convertAndMap_BioCycRegulation2COBRA(
@@ -46,15 +48,16 @@ class models_BioCyc_execute(models_BioCyc_io):
                     .replace('uacgam','udpglcur');
             return met_id_O;
 
-        data_O = []
+        data_tmp = []
         #BioCyc
         for row in BioCyc2COBRA_regulation:
+            if not row['used_']: continue;
             unique = {
                     #'left':row['left'],
                     #'right':row['right'],
                     'mode':row['mode'],
                     'mechanism':row['mechanism'],
-                    'name':row['name'],
+                    #'name':row['name'],
                     'parent_classes':row['parent_classes']
                 };
             #BioCyc Left identifiers
@@ -106,7 +109,7 @@ class models_BioCyc_execute(models_BioCyc_io):
                     tmp['left'] = l;
                     tmp['right'] = r;
                     tmp.update(unique);
-                    data_O.append(tmp);
+                    data_tmp.append(tmp);
         #COBRA
         for row in COBRA_interaction:
             unique = {
@@ -114,7 +117,7 @@ class models_BioCyc_execute(models_BioCyc_io):
                     #'right':row['right'],
                     'mode':row['mode'],
                     'mechanism':row['mechanism'],
-                    'name':'',
+                    #'name':'',
                     'parent_classes':row['parent_classes']
                 };
             left_ids=[];
@@ -134,13 +137,22 @@ class models_BioCyc_execute(models_BioCyc_io):
                     tmp['left'] = l;
                     tmp['right'] = r;
                     tmp.update(unique);
-                    data_O.append(tmp);
+                    data_tmp.append(tmp);
+                    
+        #remove duplicate entries
+        #(NOTE: only works because each dictionary is constructed identically)
+        data_O = [];
+        for row in data_tmp:
+            if not row in data_O:
+                data_O.append(row);
+
         return data_O;
 
     def update_BioCyc2COBRAregulation_mappings(self,
         BioCyc2COBRA_regulation_all,
         BioCyc2COBRA_met_mappings,
-        BioCyc2COBRA_rxn_mappings
+        BioCyc2COBRA_rxn_mappings,
+        BioCyc_exclusion_names=[]
         ):
         '''Update the listDict of BioCyc2COBRA_regulation with
         manually mapped entries
@@ -148,12 +160,14 @@ class models_BioCyc_execute(models_BioCyc_io):
         BioCyc2COBRA_regulation_all = [{}]
         BioCyc2COBRA_met_mappings = [{'BioCyc':[string],'BiGG':[string],'used_':[boolean],'comment_':[string]}]
         BioCyc2COBRA_rxn_mappings = [{'BioCyc':[string],'BiGG':[string],'used_':[boolean],'comment_':[string]}]
+        BioCyc_exclusion_names = []
         OUTPUT:
         BioCyc2COBRA_regulation_mapped = [{}]
         '''
         #add in metabolite mappings
         BioCyc2COBRA_regulation_all_1 = [];
         for d in BioCyc2COBRA_regulation_all:
+            if d['name'] in BioCyc_exclusion_names: continue;
             d['used_']=True;
             d['comment_']=None;  
             #metabolites
