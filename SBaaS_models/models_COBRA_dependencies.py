@@ -1,4 +1,4 @@
-# Dependencies from cobra
+﻿# Dependencies from cobra
 from cobra.io.sbml import create_cobra_model_from_sbml_file, write_cobra_model_to_sbml_file
 from cobra.manipulation.modify import convert_to_irreversible
 from cobra import Model, Metabolite, Reaction
@@ -754,7 +754,7 @@ class models_COBRA_dependencies():
                             tmp[attr]=rx[attr];
                     # define the left and right nodes
                     tmp1 = copy.copy(tmp)
-                    tmp1['mode']='+';
+                    tmp1['mode']='-';
                     tmp1['parent_classes']='Reactant-Reaction-Interaction';
                     tmp1['mechanism']=None;
                     tmp1['left']=reactant;
@@ -763,7 +763,7 @@ class models_COBRA_dependencies():
                     tmp1 = copy.copy(tmp)
                     tmp1['parent_classes']='Reaction-Product-Interaction';
                     tmp1['mechanism']=None;
-                    tmp1['mode']='-';
+                    tmp1['mode']='+';
                     tmp1['left']=rxn['rxn_id'];
                     tmp1['right']=product;
                     cobra_model_graph_O.append(tmp1);
@@ -776,6 +776,99 @@ class models_COBRA_dependencies():
                     #    tmp1 = copy.copy(tmp)
                     #    tmp1['left']=rxn['rxn_id'];
                     #    tmp1['right']=reactant;
+        return cobra_model_graph_O;
+    def convert_modelReactionsTable2InteractionGraph_GPR(
+            self,rxns_I,
+            weights_I=None,
+            attributes_I=[],
+            exclusion_list_I=[]):
+        '''Convert a cobramodel to an interaction graph
+        INPUT:
+        rxns_I: list of cobra model reactions [list]
+        attributes_I = list of other keys to add in to each element of the output list [string]
+        exclusion_list_I = [list of nodes to exclude]
+        OUTPUT:
+        cobra_model_graph_O: [{left:[string],right:[string],mode:[string],
+            parent_classes:[string],mechanism:[string]}]
+        '''
+        cobra_model_graph_O = [];
+        for rxn in rxns_I:
+            for gene in rxn['genes']:
+                if gene in exclusion_list_I: continue;
+                tmp = {};
+                # add in other attributes
+                if attributes_I:
+                    for attr in attributes_I:
+                        tmp[attr]=rx[attr];
+                # define the left and right nodes
+                tmp1 = copy.copy(tmp)
+                tmp1['mode']='+';
+                tmp1['parent_classes']='GPR';
+                tmp1['mechanism']=None;
+                tmp1['left']=gene;
+                tmp1['right']=rxn['rxn_id'];
+                cobra_model_graph_O.append(tmp1);
+                ## check for reversibility
+                #if rxn['reversibility']:
+                #    tmp1 = copy.copy(tmp)
+                #    tmp1['left']=product;
+                #    tmp1['right']=rxn['rxn_id'];
+                #    cobra_model_graph_O.append(tmp1);
+                #    tmp1 = copy.copy(tmp)
+                #    tmp1['left']=rxn['rxn_id'];
+                #    tmp1['right']=reactant;
+        return cobra_model_graph_O;
+    def convert_modelReactionsTable2InteractionGraph_GPRM(
+            self,rxns_I,
+            weights_I=None,
+            attributes_I=[],
+            exclusion_list_I=[]):
+        '''Convert a cobramodel to an interaction graph
+        INPUT:
+        rxns_I: list of cobra model reactions [list]
+        attributes_I = list of other keys to add in to each element of the output list [string]
+        exclusion_list_I = [list of nodes to exclude]
+        OUTPUT:
+        cobra_model_graph_O: [{left:[string],right:[string],mode:[string],
+            parent_classes:[string],mechanism:[string]}]
+        '''
+        cobra_model_graph_O = [];
+        for rxn in rxns_I:
+            for gene in rxn['genes']:
+                if gene in exclusion_list_I: continue;
+                for reactant in rxn['reactants_ids']:
+                    if reactant in exclusion_list_I: continue;
+                    for product in rxn['products_ids']:
+                        if product in exclusion_list_I: continue;
+                        tmp = {};
+                        # add in other attributes
+                        if attributes_I:
+                            for attr in attributes_I:
+                                tmp[attr]=rx[attr];
+                        # define the left and right nodes
+                        tmp1 = copy.copy(tmp)
+                        tmp1['mode']='-';
+                        tmp1['parent_classes']='GPR-Reactant-Interaction';
+                        tmp1['mechanism']=None;
+                        tmp1['left']=gene;
+                        tmp1['right']=reactant;
+                        cobra_model_graph_O.append(tmp1);
+                        tmp1 = copy.copy(tmp)
+                        tmp1['parent_classes']='GPR-Product-Interaction';
+                        tmp1['mechanism']=None;
+                        tmp1['mode']='+';
+                        tmp1['left']=gene;
+                        tmp1['right']=product;
+                        cobra_model_graph_O.append(tmp1);
+                        ## check for reversibility
+                        #if rxn['reversibility']:
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=product;
+                        #    tmp1['right']=rxn['rxn_id'];
+                        #    cobra_model_graph_O.append(tmp1);
+                        #    tmp1 = copy.copy(tmp)
+                        #    tmp1['left']=rxn['rxn_id'];
+                        #    tmp1['right']=reactant;
         return cobra_model_graph_O;
 
 

@@ -16,6 +16,7 @@ class models_BioCyc_execute(models_BioCyc_io):
         COBRA_interaction,
         BioCyc_alt_id = {},
         COBRA_alt_id = {},
+        COBRA_alt_id2 = {},
         deformat_met_id_I = True
         ):
         '''
@@ -31,6 +32,7 @@ class models_BioCyc_execute(models_BioCyc_io):
         COBRA_alt_id = {rxn_id:'pathways':[],'stoichiometry':[]}}
             output from get_rowsDict_modelID_dataStage02PhysiologyModelPathways
                         convert_netRxnDict2rxnNetRxnDict
+        COBRA_alt_id2 = {bnumber:'bnumber':'','gene_name':[]}}
         OUTPUT:
         data_O = [{left:[string],right:[string],mode:[string],parent_classes:[string]}]
         '''
@@ -122,11 +124,16 @@ class models_BioCyc_execute(models_BioCyc_io):
                 };
             left_ids=[];
             left_ids.append(row['left']) 
+            if row['left'] in COBRA_alt_id2.keys():
+                left_alt_ids = list(set(COBRA_alt_id2[row['left']]['gene_name']))
+                left_ids.extend(left_alt_ids)
             met_id_left = deformatAndConvert_metID(row['left'])
             if met_id_left:
                 left_ids.append(met_id_left)
             right_ids=[];
             right_ids.append(row['right']) 
+            if row['right'] in COBRA_alt_id2.keys():
+                left_alt_ids = list(set(COBRA_alt_id2[row['right']]['gene_name']))
             met_id_right = deformatAndConvert_metID(row['right'])
             if met_id_right:
                 right_ids.append(met_id_right)
