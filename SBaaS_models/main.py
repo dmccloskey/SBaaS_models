@@ -1,13 +1,13 @@
 ﻿import sys
-sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
-#sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
+#sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
+sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
 from SBaaS_base.postgresql_settings import postgresql_settings
 from SBaaS_base.postgresql_orm import postgresql_orm
 
 # read in the settings file
-filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
+#filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
 #filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_labtop.ini';
-#filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
+filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
 pg_settings = postgresql_settings(filename);
 
 # connect to the database from the settings file
@@ -44,222 +44,147 @@ biocyc01 = models_BioCyc_execute(session,engine,pg_settings.datadir_settings);
 biocyc01.initialize_supportedTables()
 biocyc01.initialize_tables()
 
-#genes tested: 'tpiA','gloA','nrdA','mgsA','pfkA'
-#biocyc01.export_geneRegulators_js('icd','ECOLI');
-#biocyc01.export_geneReactions_js('icd','ECOLI');
-#biocyc01.export_geneEnzymaticReactions_js('icd','ECOLI');
-#biocyc01.export_geneRegulators_js('fli%','ECOLI');
-#biocyc01.export_geneRegulatedEntities_js('spf','ECOLI');
-#biocyc01.export_geneProteinFeatures_js('zwf','ECOLI');
+#BioCyc dependencies
+from SBaaS_models.models_BioCyc_dependencies import models_BioCyc_dependencies
+biocyc01_dep = models_BioCyc_dependencies();
 
-#biocyc01.export_geneAndMetaboliteRegulatedEntities_sankeyDiagram_js(
-#    genes_I=['soxR','soxS','oxyR','oxyS','marA','rob'],
-#    metabolites_I = ['putrescine'],
-#    database_I = 'ECOLI');
-#biocyc01.export_geneTranscriptionUnitRegulators_sankeyDiagram_js(
-#    genes_I=['glnE'],
-#    database_I = 'ECOLI');
+#BioCyc dependencies
+from SBaaS_models.models_COBRA_dependencies import models_COBRA_dependencies
+cobra01_dep = models_COBRA_dependencies();
 
-#biocyc01.export_geneReactionAndEnzymaticReactionRegulators_sankeyDiagram_js(
-#    genes_I=['glnD'],
-#    database_I = 'ECOLI');
-
-#biocyc01.export_geneReactions_forceDirectedGraph_js(
-#    genes_I=['glnL','glnG','glnB','glnD','glnE','glnK','glnA'],
-#    database_I = 'ECOLI');
-#biocyc01.export_geneReactionsAndEnzymaticReactions_forceDirectedGraph_js(
-#    genes_I=['glnL','glnG','glnB','glnD','glnE','glnK','glnA'],
-#    database_I = 'ECOLI');
-
-#stringList_I = 'gadA,gadX,gadB,gadC'
-#str_list = stringList_I.split(',');
-#biocyc01.export_geneParentClasses_js(str_list,'ECOLI');
-
-#stringList_I = 'bglG,bglGFB,leuO,molR_1,sfsB,yecT,ygiZ,yidL,ykiA,ynbABCD,ynjI,yqhG,adiC,aslB,cadBA,gadAX,slp-dctR,yhiM,csgDEFG,flhDC,rcsA,wza-wzb-wzc-wcaAB,yjbE,yjbEFGH'
-#str_list = stringList_I.split(',');
-#biocyc01.export_transcriptionUnitParentClassesHistogram_js(str_list,'ECOLI',single_plot_I=True);
-
-#biocyc01.export_GOTermGenes_js('GO:0046034','ECOLI');
-
-#BioCycReactions2Genes = biocyc01.getJoin_genes_namesAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
-#    names_I='[protein-PII] uridylyltransferase',database_I='ECOLI',
-#    query_I={},
-#    )
-
-#regulation_O = biocyc01.getJoin_regulatorsAndRegulatedEntities_database_modelsBioCycRegulationAndAll('ECOLI')
-
-from io_utilities.base_importData import base_importData
-from io_utilities.base_exportData import base_exportData
-
-#iobase = base_importData();
-#iobase.read_json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc_regulation.json');
-#regulation_O = iobase.data;
-
-#COBRA_reactions = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
-#    'iJO1366')
-#COBRA_metabolites = cobra01.get_rows_modelID_dataStage02PhysiologyModelMetabolites(
-#    'iJO1366')
-
-#iobase = base_importData();
-#iobase.read_json(
-#   pg_settings.datadir_settings['workspace_data']+\
-#   '/_output/chebiId_inchi_3star.json');
-#chebi2inchi = iobase.data;
-
-#iobase = base_importData();
-#iobase.read_json(
-#   pg_settings.datadir_settings['workspace_data']+\
-#   '/_output/metanetx_reac_xref.json');
-#metanetx_reac_xref = iobase.data;
-
-#iobase = base_importData();
-#iobase.read_json(
-#   pg_settings.datadir_settings['workspace_data']+\
-#   '/_output/metanetx_chem_xref.json');
-#metanetx_chem_xref = iobase.data;
-
-#iobase = base_importData();
-#iobase.read_json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc_reactions.json');
-#BioCyc_reactions = iobase.data;
-
-#iobase = base_importData();
-#iobase.read_json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc_compounds.json');
-#BioCyc_compounds = iobase.data;
-
-#BioCyc_enzymaticReactions2PolymerSegments = biocyc01.getJoin_genes_enzymaticReactionsAndDatabase_modelsBioCycEnzymaticReactionsAndPolymerSegments(
-#    BioCyc_reactions,
-#    database_I='ECOLI',
-#    query_I={},
-#    output_O='listDict',
-#    dictColumn_I=None
-#    )
-
-#iobase = base_exportData(BioCyc_enzymaticReactions2PolymerSegments);
-#iobase.write_dict2json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc_enzymaticReactions2PolymerSegments.json');
-#iobase.write_dict2csv(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc_enzymaticReactions2PolymerSegments.csv');
-
-#iobase = base_importData();
-#iobase.read_json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc_enzymaticReactions2PolymerSegments.json');
-#BioCyc_enzymaticReactions2PolymerSegments = iobase.data;
-
-#BioCyc2COBRA_regulation = biocyc01.convertAndMap_BioCycRegulation2COBRA(
-#    BioCyc_regulation_I = regulation_O,
-#    BioCyc_reactions_I = BioCyc_reactions,
-#    BioCyc_enzymaticReactions2PolymerSegments_I = BioCyc_enzymaticReactions2PolymerSegments,
-#    BioCyc_compounds_I = BioCyc_compounds,
-#    COBRA_reactions_I = COBRA_reactions,
-#    COBRA_metabolites_I = COBRA_metabolites,
-#    chebi2inchi_I = chebi2inchi,
-#    MetaNetX_reactions_I = metanetx_reac_xref,
-#    MetaNetX_metabolites_I = metanetx_chem_xref,
-#    );
-
-#iobase = base_exportData(BioCyc2COBRA_regulation);
-#iobase.write_dict2json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc2COBRA_regulation.json');
-#iobase.write_dict2csv(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc2COBRA_regulation.csv');
-
-#iobase = base_importData();
-#iobase.read_json(
-#     pg_settings.datadir_settings['workspace_data']+\
-#     '/_output/BioCyc2COBRA_regulation.json');
-#BioCyc2COBRA_regulation = iobase.data;
-
-#BioCyc2COBRA_TFs = biocyc01.convertAndMap_BioCycTranscriptionFactor2COBRA(
-#    BioCyc2COBRA_regulation_I = BioCyc2COBRA_regulation,
-#    BioCyc_polymerSegments_I = None,
-#    BioCyc_compounds_I = None,
-#    COBRA_metabolites_I = COBRA_metabolites,
-#    chebi2inchi_I = chebi2inchi,
-#    );
-
-#iobase = base_exportData(BioCyc2COBRA_TFs);
-#iobase.write_dict2json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc2COBRA_TFs.json');
-
-#reactions,metabolites = cobra01.execute_convertNetRxns2IndividualRxns(
-#    model_id_netRxns_I='150526_iDM2015',
-#    model_id_template_I='iJO1366_ALEWt_irreversible',
-#    pathway_model_id_I='iJO1366_ALEWt_irreversible',
-#    convert2Irreversible_I = False
-#    );
-
-## get the model reactions from table
-#netRxns = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
-#    '150526_iDM2015'
-#    );
-## get pathways from table (needed for conversion from iJO1366 to iDM2015)
-#pathway2Reactions = cobra01.get_rowsDict_modelID_dataStage02PhysiologyModelPathways(
-#    'iJO1366')
-## create a reverse pathway lookup dict
-#reactions2Pathway = cobra01.convert_netRxnDict2rxnNetRxnDict(
-#    pathway_dict_I = pathway2Reactions,
-#    convert2Irreversible_I = True
-#    )
-#print('check')
+sys.path.append(pg_settings.datadir_settings['workspace']+'/sbaas_shared')
+from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 
 iobase = base_importData();
 iobase.read_json(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_all_mapped.json');
-BioCyc2COBRA_regulation_all = iobase.data;
+    '/_output/BioCyc2COBRA_regulationAndInteraction.json');
+BioCyc2COBRA_regulationAndInteraction = iobase.data;
 
-# get the model reactions from table
-reactions = cobra01.get_rows_modelID_dataStage02PhysiologyModelReactions(
-    '150526_iDM2015'
-    );
-#convert rxns list to directed graph
-interactionGraph = cobra01.convert_modelReactionsTable2InteractionGraph(
-    reactions,
-    attributes_I={},
-    exclusion_list_I=[]);
-
-# get pathways from table (needed for conversion from iJO1366 to iDM2015)
-pathway2Reactions = cobra01.get_rowsDict_modelID_dataStage02PhysiologyModelPathways(
-    'iJO1366')
-# create a reverse pathway lookup dict
-reactions2Pathway = cobra01.convert_netRxnDict2rxnNetRxnDict(
-    pathway_dict_I = pathway2Reactions,
-    convert2Irreversible_I = True
-    )
-
-#BioCyc dependencies
-from SBaaS_models.models_BioCyc_dependencies import models_BioCyc_dependencies
-biocyc01_dep = models_BioCyc_dependencies();
 #get mapped and unmapped components
-components,components_EcoCyc = biocyc01_dep.get_componentsFromBioCyc2COBRAregulation(
-    BioCyc2COBRA_regulation_all)
+components = [];
+for row in BioCyc2COBRA_regulationAndInteraction:
+    if row['left']:
+        components.append(row['left'])
+    if row['left']:
+        components.append(row['right'])
+components = list(set(components))
+print(len(components)) #5844
 
-#get alternative gene_ids from unmapped components
-biocyc_genes,gene_ids,accession_1 = biocyc01.get_alternativeGeneIdentifiers_modelsBioCycPolymerSegments(
-    components_EcoCyc)
+#list of metabolite ids
+met_ids_deformatted_str = '23dpg,6pgc,accoa,acon-C,ade,adn,adp,adpglc,akg,ala-L,amp,arg-L,asn-L,atp,camp,chor,cit,citr-L,cmp,coa,ctp,dadp,damp,datp,dcdp,dcmp,dctp,dhap,dimp,dtdpglu,dtmp,dttp,dump,dutp,f6p,fad,fdp,fum,g1p,g6p,gam6p,gdp,gln-L,glu-L,glutacon,glx,glyc3p,glyclt,gmp,gsn,gthox,gthrd,gtp,gua,his-L,hxan,icit,imp,ins,itp,lac-D,Lcystin,mal-L,met-L,mmal,nad,nadh,nadp,nadph,orn,pep,phe-L,phpyr,Pool_2pg_3pg,pyr,r5p,ru5p-D,s7p,ser-L,skm,succ,thr-L,trp-L,tyr-L,udp,udpg,udpglcur,ump,ura,uri,utp'
+met_ids_deformatted = met_ids_deformatted_str.split(',')
 
-data_O = biocyc01.join_BioCyc2COBRAregulationWithCOBRAinteractions(
-    BioCyc2COBRA_regulation = BioCyc2COBRA_regulation_all,
-    COBRA_interaction = interactionGraph,
-    BioCyc_alt_id = biocyc_genes,
-    COBRA_alt_id = reactions2Pathway
-    )
+analysis_ids_Metabolomics_str = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo01,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo02,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo03,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo01,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo02,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo03,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo01,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo02,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo03,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo04,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo01,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo02,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo03,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo04,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo01,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo02,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo03,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo04,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo05,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo06,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo07,\
+ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo08'
+analysis_ids_RNASequencing_str = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo01,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo02,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo03,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo01,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo02,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo03,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo01,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo02,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo03,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo04,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo01,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo02,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo03,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo04,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo01,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo02,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo03,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo04,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo05,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo06,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo07,\
+ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo08'
+analysis_ids_sampledFluxes_str = 'ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo01,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo02,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo03,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo01,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo02,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo03,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo01,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo02,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo03,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo04,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo01,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo02,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo03,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo04,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo01,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo02,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo03,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo04,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo05,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo06,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo07,\
+ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo08'
+analysis_ids = ','.join([analysis_ids_Metabolomics_str,
+    analysis_ids_RNASequencing_str,
+    analysis_ids_sampledFluxes_str]);
+
+data_O = [];
+
+patternMatch_I='novel +,\
+overcompensation +,\
+partially-restored +,\
+pattern_match_description,\
+reinforced +,\
+restored fast +,\
+unrestored +';
+
+ccu = 'log2(FC),\
+mmol*gDW-1*hr-1_FC-mean_normalized,\
+umol*gDW-1_glog_normalized';
+
+#optional_constraint_I = 'AND (correlation_coefficient > 0.88 OR correlation_coefficient < -0.88)';
+optional_constraint_I = None;
+
+correlation_coefficient_threshold_I = 0.88;
+
+data_O = execute_regulationAggreementCorrelationPatterns(
+    session,
+    BioCyc2COBRA_regulationAndInteraction,
+    met_ids_deformatted,
+    cobra01_dep,
+    analysis_ids,
+    cgn=None,
+    sna=None,
+    patternMatch=patternMatch_I,
+    ccu=ccu,
+    distanceMeasure=None,
+    table_name = "data_stage02_quantification_correlationPattern",
+    optional_constraint_I=optional_constraint_I,
+    pvalue_threshold_I=None,
+    correlation_coefficient_threshold_I=correlation_coefficient_threshold_I,
+    )    
+
 iobase = base_exportData(data_O);
 iobase.write_dict2json(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulationAndInteraction.json');
+    '/_output/BioCyc2COBRA_regulationAndInteractionCorrelationPattern_data_O.json');
 iobase.write_dict2csv(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulationAndInteraction.csv');
+    '/_output/BioCyc2COBRA_regulationAndInteractionCorrelationPattern_data_O.csv');
