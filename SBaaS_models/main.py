@@ -55,35 +55,16 @@ cobra01_dep = models_COBRA_dependencies();
 sys.path.append(pg_settings.datadir_settings['workspace']+'/sbaas_shared')
 from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 
-#hypergeomitric using model subsystems
-analysis_ids = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gnd,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgi,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrr,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCB,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiA,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gnd,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgi,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrr,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCB,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiA,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gnd,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgi,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrr,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCB,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiA';
-enrichment_method = 'hypergeometric';
-test_description='hypergeometric';
-pvalue_threshold=1e-3;
-ccu1='umol*gDW-1_glog_normalized,log2(FC),\
-geometricFC(mean),\
-log2(FC)'
-table_name = "data_stage02_quantification_pairWiseEnrichment"
-data_1 = execute_sigPairWiseEnrichment(
-    session,    
-    analysis_ids,
-    ccu1,
-    enrichment_method = enrichment_method,
-    test_description=test_description,
-    pvalue_threshold=pvalue_threshold,
-    table_name = table_name
-    )
+iobase = base_importData();
+iobase.read_csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/ALEsKOs01_shortestPaths/ALEsKOs01_0_11_metaboliteCategories.csv');
+metaboliteCategories = iobase.data 
+
+metaboliteCategoriesCounts = count_metaboliteCategoryAgreementCorrelationPatterns(
+    metaboliteCategories)
+
+iobase = base_exportData(metaboliteCategoriesCounts);
+iobase.write_dict2csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/ALEsKOs01_0_11_metaboliteCategoriesCounts.csv');

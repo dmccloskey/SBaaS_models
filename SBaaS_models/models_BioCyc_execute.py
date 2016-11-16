@@ -1,6 +1,9 @@
 ﻿from .models_BioCyc_io import models_BioCyc_io
 from .models_BioCyc_dependencies import models_BioCyc_dependencies
 
+from .models_COBRA_query import models_COBRA_query
+from .models_BioCyc_dependencies import models_BioCyc_dependencies
+
 import copy
 
 class models_BioCyc_execute(models_BioCyc_io):
@@ -796,3 +799,86 @@ class models_BioCyc_execute(models_BioCyc_io):
             if not row in data_O:
                 data_O.append(row);
         return data_O;
+
+    def execute_getBiomassProducingPathwayComponents_BioCycAndCOBRA(
+        self,
+        biomassProducingPathways,
+        ):
+        ''' '''
+        pathways = [d['Subpathway'] for d in biomassProducingPathways if d['used_']=="TRUE"]
+
+        #reorganize into subpathways
+        subpathways_dict = {};
+        for d in iobase.data:
+            if d['used_'] and d['used_']=="TRUE":
+                if not d['Pathway'] in subpathways_dict.keys():
+                    subpathways_dict[d['Pathway']]={};
+                if not d['Pathway'] in subpathways_dict[d['Pathway']].keys():
+                    subpathways_dict[d['Pathway']][d['Pathway']]=[];
+                if not d['Subpathway'] in subpathways_dict[d['Pathway']].keys():
+                    subpathways_dict[d['Pathway']][d['Subpathway']]=[];
+                subpathways_dict[d['Pathway']][d['Subpathway']].append(d['Subpathway']);
+                subpathways_dict[d['Pathway']][d['Pathway']].append(d['Subpathway']);
+        subpathways_dict['all']={'all':pathways};
+
+        #map the subpathway components        
+        subpathways2components_dict = {};
+        for k1,v1 in subpathways_dict.items():
+            subpathways2components_dict[k1]={};
+            for k2,v2 in v1.items():
+                gene_ids,rxn_ids,met_ids,met_ids_deformated = \
+                    self.get_geneIDsAndRxnIDsAndMetIDs_modelsBioCycAndModelsCOBRA(v2)
+                subpathways2components_dict[k1][k2]={
+                    'gene_ids':gene_ids,
+                    'rxn_ids':rxn_ids,
+                    'met_ids':met_ids,
+                    'met_ids_deformated':met_ids_deformated,
+                };  
+        return subpathways2components_dict;
+
+    def get_geneIDsAndRxnIDsAndMetIDs_modelsBioCycAndModelsCOBRA(
+        self,
+        pathways):
+
+        #initialize supporting objects
+        cobra01 = models_COBRA_query(self.session,self.engine,self.settings);
+        cobra01.initialize_supportedTables();
+        cobra_dependencies = models_BioCyc_dependencies();
+
+        #query the pathways
+        biocyc_pathways = self.getParsed_genesAndPathwaysAndReactions_namesAndDatabase_modelsBioCycPathways(
+            names_I=pathways,
+            database_I='ECOLI',
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None);
+        genes = list(set([g['gene'] for g in biocyc_pathways if g['gene']!='']));
+        #join list of genes with alternative identifiers
+        biocyc_genes = self.getParsed_genesAndAccessionsAndSynonyms_namesAndDatabase_modelsBioCycPolymerSegments(
+            names_I=genes,
+            database_I='ECOLI',
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None);
+        gene_ids = list(set(genes + [g['synonym'] for g in biocyc_genes if g['synonym']]));
+        accession_1 = list(set([g['accession_1'] for g in biocyc_genes if g['accession_1']!='']));
+        #Join accession_1 with COBRA reactions
+        cobra_rxnIDs = cobra01.get_rows_modelIDAndOrderedLocusNames_dataStage02PhysiologyModelReactions(
+            model_id_I='150526_iDM2015',
+            ordered_locus_names_I=accession_1,
+            query_I={},
+            output_O='listDict',
+            dictColumn_I=None)
+        rxn_ids = list(set([g['rxn_id'].replace('_reverse','') for g in cobra_rxnIDs if g['rxn_id']!='']));
+        #COBRA metabolites
+        met_ids = list(set([p for g in cobra_rxnIDs if g['products_ids'] for p in g['products_ids']]+\
+            [p for g in cobra_rxnIDs if g['reactants_ids'] for p in g['reactants_ids']]));
+        #deformat met_ids
+        from SBaaS_models.models_COBRA_dependencies import models_COBRA_dependencies
+        cobra_dependencies = models_COBRA_dependencies();
+        met_ids_deformated = list(set([cobra_dependencies.deformat_metid(m).replace('13dpg','23dpg')\
+            .replace('3pg','Pool_2pg_3pg')\
+            .replace('glycogen','adpglc')\
+            .replace('uacgam','udpglcur') for m in met_ids]));
+        #return values
+        return gene_ids,rxn_ids,met_ids,met_ids_deformated;
