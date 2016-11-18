@@ -809,7 +809,7 @@ class models_BioCyc_execute(models_BioCyc_io):
 
         #reorganize into subpathways
         subpathways_dict = {};
-        for d in iobase.data:
+        for d in biomassProducingPathways:
             if d['used_'] and d['used_']=="TRUE":
                 if not d['Pathway'] in subpathways_dict.keys():
                     subpathways_dict[d['Pathway']]={};
