@@ -523,8 +523,9 @@ class models_BioCyc_query(sbaas_template_query):
         return data_O;
 
     #models_biocyc_regulation
-    def get_rows_databaseAndNotNull_modelsBioCycRegulation(
+    def get_rows_databaseAndParentClassesAndNotNull_modelsBioCycRegulation(
         self,database_I='ECOLI',
+        parent_classes_I = '',
         query_I={},
         output_O='listDict',
         dictColumn_I=None):
@@ -532,7 +533,7 @@ class models_BioCyc_query(sbaas_template_query):
         FROM models_biocyc_regulation
         WHERE LIKE '''
         
-        tables = ['models_biocyc_regulation']
+        tables = ['models_biocyc_regulation']        
 
         # make the query
         query = {};
@@ -548,7 +549,7 @@ class models_BioCyc_query(sbaas_template_query):
             #'connector':'AND'
             #    },
             #{"table_name":tables[0],
-            #'column_name':'regulator  ',
+            #'column_name':'regulator',
             #'value':'',
             #'operator':'!=',
             #'connector':'AND'
@@ -560,6 +561,18 @@ class models_BioCyc_query(sbaas_template_query):
             'connector':'AND'
                 },
 	    ];
+
+        if not parent_classes_I is None and parent_classes_I:
+            #parent_classes_str = self.convert_list2string(parent_classes_I);
+            #parent_classes = "('{%s}'::text[])" %parent_classes_str;
+            query['where'].append(
+                {"table_name":tables[0],
+                'column_name':'parent_classes',
+                'value':parent_classes_I,
+                'operator':'=',
+                'connector':'AND'
+                })
+
         query['order_by'] = [
             {"table_name":tables[0],
             'column_name':'parent_classes',
@@ -2778,8 +2791,10 @@ class models_BioCyc_query(sbaas_template_query):
 
         return data_O;
 
-    def getJoin_regulatorsAndRegulatedEntities_database_modelsBioCycRegulationAndAll(
-        self,database_I='ECOLI',
+    def getJoin_regulatorsAndRegulatedEntities_databaseAndParentClasses_modelsBioCycRegulationAndAll(
+        self,
+        database_I='ECOLI',
+        parent_classes_I=[],
         query_I={},
         output_O='listDict',
         dictColumn_I=None):
@@ -2793,8 +2808,9 @@ class models_BioCyc_query(sbaas_template_query):
         data_O = [];
         regulation_1 = {};
         #get regulators and regulated entities
-        regulation = self.get_rows_databaseAndNotNull_modelsBioCycRegulation(
+        regulation = self.get_rows_databaseAndParentClassesAndNotNull_modelsBioCycRegulation(
             database_I=database_I,
+            parent_classes_I=parent_classes_I,
             query_I=query_I,
             output_O=output_O,
             dictColumn_I=dictColumn_I

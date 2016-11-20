@@ -52,138 +52,227 @@ biocyc01_dep = models_BioCyc_dependencies();
 from SBaaS_models.models_COBRA_dependencies import models_COBRA_dependencies
 cobra01_dep = models_COBRA_dependencies();
 
+regulation_O = biocyc01.getJoin_regulatorsAndRegulatedEntities_databaseAndParentClasses_modelsBioCycRegulationAndAll(
+    database_I='ECOLI',
+    parent_classes_I='("Transcription-Factor-Binding")')
+
+print('check')
+
 sys.path.append(pg_settings.datadir_settings['workspace']+'/sbaas_shared')
 from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 
-#iobase = base_importData();
-#iobase.read_csv(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/ALEsKOs01_shortestPaths/ALEsKOs01_0_11_metaboliteCategories.csv');
-#metaboliteCategories = iobase.data 
+#analysis_ids_Metabolomics_str = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo01,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo02,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo03,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo01,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo02,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo03,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo01,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo02,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo03,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo04,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo01,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo02,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo03,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo04,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo01,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo02,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo03,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo04,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo05,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo06,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo07,\
+#ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo08'
+#analysis_ids_RNASequencing_str = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo01,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo02,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo03,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo01,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo02,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo03,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo01,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo02,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo03,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo04,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo01,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo02,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo03,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo04,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo01,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo02,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo03,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo04,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo05,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo06,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo07,\
+#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo08'
+#analysis_ids_sampledFluxes_str = 'ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo01,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo02,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo03,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo01,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo02,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo03,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo01,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo02,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo03,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo04,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo01,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo02,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo03,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo04,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo01,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo02,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo03,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo04,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo05,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo06,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo07,\
+#ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo08'
 
-#metaboliteCategoriesCounts = count_metaboliteCategoryAgreementCorrelationPatterns(
-#    metaboliteCategories)
+#sigMets,sigExpression,sigFluxes = execute_getSignificantComponents(
+#    session,
+#    analysis_ids_Metabolomics_str,
+#    analysis_ids_RNASequencing_str,
+#    analysis_ids_sampledFluxes_str
+#    )
+#sigComponents = {};
+#sigComponents.update(sigMets);
+#sigComponents.update(sigExpression);
+#sigComponents.update(sigFluxes);
 
-#iobase = base_exportData(metaboliteCategoriesCounts);
-#iobase.write_dict2csv(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/ALEsKOs01_0_11_metaboliteCategoriesCounts.csv');
+#############################
+##make a dummy set of sigComponents for metSum
+#def makeSigComponents_sigPairWiseAgreementCorrelationPatterns(sigMets):
+#    from SBaaS_models.models_COBRA_dependencies import models_COBRA_dependencies
+#    cobra01_dep = models_COBRA_dependencies();
 
-analysis_ids_Metabolomics_str = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo01,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo02,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo03,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo01,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo02,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo03,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo01,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo02,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo03,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04tpiAEvo04,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo01,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo02,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo03,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04ptsHIcrrEvo04,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo01,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo02,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo03,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo04,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo05,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo06,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo07,\
-ALEsKOs01_Metabolomics_0_evo04_0_11_evo04pgiEvo08'
-analysis_ids_RNASequencing_str = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo01,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo02,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo03,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo01,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo02,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo03,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo01,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo02,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo03,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo04,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo01,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo02,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo03,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo04,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo01,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo02,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo03,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo04,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo05,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo06,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo07,\
-ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo08'
-analysis_ids_sampledFluxes_str = 'ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo01,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo02,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04gndEvo03,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo01,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo02,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04sdhCBEvo03,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo01,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo02,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo03,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04tpiAEvo04,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo01,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo02,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo03,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04ptsHIcrrEvo04,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo01,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo02,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo03,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo04,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo05,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo06,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo07,\
-ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo08'
+#    sigMetsSum = {};
+#    for k,v in sigMets.items():
+#        analysis_id = k.replace('Metabolomics','sampledFluxes');
+#        sigMetsSum[analysis_id]=[]
+#        for met_id in v:
+#            met_id1 = met_id.split('.')[0];
+#            metSum_id = cobra01_dep.format_metid(met_id1,'c')\
+#                .replace('23dpg_c','13dpg_c')\
+#                .replace('Pool_2pg_3pg_c','3pg_c')\
+#                .replace('adpglc_c','glycogen_c')\
+#                .replace('udpglcur_c','uacgam_c')\
+#                .replace('gam6p_c','uacgam_c');
+#            sigMetsSum[analysis_id].append(metSum_id);
+#    sigComponents1 = {}
+#    sigComponents1.update(sigMets);
+#    sigComponents1.update(sigMetsSum);
+#    return sigComponents1;
 
-sigMets,sigExpression,sigFluxes = execute_getSignificantComponents(
-    session,
-    analysis_ids_Metabolomics_str,
-    analysis_ids_RNASequencing_str,
-    analysis_ids_sampledFluxes_str
-    )
-sigComponents = {};
-sigComponents.update(sigMets);
-sigComponents.update(sigExpression);
-sigComponents.update(sigFluxes);
+#sigComponents1 = makeSigComponents_sigPairWiseAgreementCorrelationPatterns(sigMets)
 
-filename_I = pg_settings.datadir_settings['workspace_data']+\
-    '/ALEsKOs01_impFeats/ALEsKOs01_0_11_correlationPatterns.csv'
+##make a custom constraint function
+#def constraint_sigPairWiseAgreementCorrelationPatterns(component1,component2):
+#    ''' '''
+#    from SBaaS_models.models_COBRA_dependencies import models_COBRA_dependencies
+#    cobra01_dep = models_COBRA_dependencies();
+#    cgn1 = component1[1];
+#    cgn2 = cobra01_dep.deformat_metid(component2[1])\
+#            .replace('13dpg','23dpg')\
+#            .replace('3pg','Pool_2pg_3pg')\
+#            .replace('glycogen','adpglc')\
+#            .replace('uacgam','udpglcur')\
+#            .replace('uacgam','gam6p');
+#    return cgn1==cgn2;
+
+#filename_I = pg_settings.datadir_settings['workspace_data']+\
+#    '/ALEsKOs01_impFeats/ALEsKOs01_0_11_correlationPatterns_metSumMetConc.csv'
     
-iobase = base_importData();
-iobase.read_csv(filename_I);
-analysis_table_I = iobase.data;
-
-analysis_table_I = [row for row in analysis_table_I if 'Metabolomics' in row['analysis_id']]
-
-#ref vs KO and KO vs EP for each lineage
-#pvalue_I = 0.05;
-pvalue_I = None;
-correlation_coefficient_I = 0.88;
-
-data1 = execute_sigPairWiseAgreementCorrelationPatterns(
-    session,
-    analysis_table_I,
-    pvalue_I=pvalue_I,
-    correlation_coefficient_I=correlation_coefficient_I,
-    sigComponents_I=sigComponents,
-    redundancy_I=True)
-
-
-
 #iobase = base_importData();
-#iobase.read_json(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/_output/BioCyc2COBRA_regulationAndInteractionCorrelationPattern_data_O.json');
-#data_O = iobase.data;
+#iobase.read_csv(filename_I);
+#analysis_table_I = iobase.data; 
 
-#dataSummary_O = count_regulationAgreementCorrelation(
-#    data_O,
-#    pvalue_threshold = None,
-#    correlation_coefficient_threshold = None)
+#data1 = execute_sigPairWiseAgreementCorrelationPatterns(
+#    session,
+#    analysis_table_I,
+#    pvalue_I = None,
+#    correlation_coefficient_I = 0.88,
+#    sigComponents_I=sigComponents1,
+#    redundancy_I=True,
+#    self_vs_self_I=True,
+#    optional_constraint_I=None,
+#    ccu1=['umol*gDW-1_glog_normalized','height_ratio'],
+#    ccu2=['mmol*gDW-1*hr-1_metSum_FC-mean_normalized'],
+#    custom_constraint_func_I=constraint_sigPairWiseAgreementCorrelationPatterns
+#    )
+
+#sigPairWiseAgreementCorrelationPatterns = count_sigPairWiseAgreementCorrelation(
+#    data_I=data1);
+
+#filename_O = pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/ALEsKOs01_0_11_sigPairWiseAgreementCorrelationPattern.csv'
+    
+#iobase = base_exportData(sigPairWiseAgreementCorrelation);
+#iobase.write_dict2csv(filename_O);
+#############################
 
 
+#####################
+#filename_I = pg_settings.datadir_settings['workspace_data']+\
+#    '/BioCyc2COBRA_regulation_data/ALEsKOs01_0_11_biomassProducingPathwaysCorrelationPatterns.json'
+    
+#iobase = base_importData();
+#iobase.read_json(filename_I);
+#biomassProducingPathwaysCorrelation = iobase.data;
 
+#subpathwayPromotersInhibitorsGrowth = count_biomassProducingPathwaysCorrelationPatterns(
+#    biomassProducingPathwaysCorrelation);
+
+#filename_O = pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/ALEsKOs01_0_11_biomassProducingPathwaysCorrelationPatterns_subpathwayPromotersInhibitorsGrowth.csv'
+    
+#iobase = base_exportData(subpathwayPromotersInhibitorsGrowth);
+#iobase.write_dict2csv(filename_O);
+
+#from ddt_python.ddt_container_heatmap import ddt_container_heatmap
+
+#data_1 = [d for d in subpathwayPromotersInhibitorsGrowth if d['category_id']=='flux']
+#data1_keys = [
+#    'analysis_id',
+#    'pathway_id',
+#    'category_id',
+#    ]
+#data1_nestkeys = [
+#    'analysis_id',
+#    'pathway_id'
+#    ];
+#data1_keymap = {
+#    'xdata':'analysis_index',
+#    'ydata':'pathway_index',
+#    'zdata':'promoting_or_inhibiting',
+#    'rowslabel':'analysis_id',
+#    'columnslabel':'pathway_id',
+#    'rowsindex':'analysis_index',
+#    'columnsindex':'pathway_index',
+#    'rowsleaves':'analysis_index',
+#    'columnsleaves':'pathway_index'
+#    };
+
+## make the ddt .js file
+#nsvgtable = ddt_container_heatmap();
+#nsvgtable.make_container_heatmap(
+#    data_1=data_1,
+#    svgcolorcategory='blue2gold64RBG',
+#    svgcolordomain='min,max',
+#    data1_keymap=data1_keymap,
+#    data1_nestkeys=data1_nestkeys,
+#    data1_keys=data1_keys,
+#     svgparameters_I= {
+#         'svgcellsize':18,
+#         'svgmargin':{ 'top': 200, 'right': 50, 'bottom': 100, 'left': 200 },
+#         'svgcolorscale':'quantile',
+#         'svgcolorcategory':'blue2gold64RBG',
+#         'svgcolordomain':'min,max',
+#         'svgcolordatalabel':'value',
+#         'svgdatalisttileid':'tile1'}
+#        );
+#######################
+
+#######################
 #analysis_ids = [
 ## 'ALEsKOs01_0_11',
 ## 'ALEsKOs01_0_evo04_0_11_evo04gnd',
@@ -244,4 +333,4 @@ data1 = execute_sigPairWiseAgreementCorrelationPatterns(
     
 #iobase = base_exportData(sigPairWiseAgreementCorrelation);
 #iobase.write_dict2csv(filename_O);
-
+#########################
