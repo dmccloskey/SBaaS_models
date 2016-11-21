@@ -136,18 +136,41 @@ class models_BioCyc_dependencies():
                         genes2TF_dict[gene] = []
                     genes2TF_dict[gene].append(row)
 
-        BioCyc_regulation_singleTranscriptionFactorBinding = [];
+        #filter out genes with multiple regulators
+        regulation_singleRegulators = [];
+        genes_multipleRegulators = [];
         for gene,v in genes2TF_dict.items():
             regulators = [];
-            if gene == 'focA':
-                print('check');
+            genes = [];
+            #if gene == 'focA':
+            #    print('check');
+            #if gene == 'nanC':
+            #    print('check');
             for r in v:
+                genes.extend(r['regulated_entity_gene']);
                 regulators.append(r['regulator']);
             if len(list(set(regulators)))==1:
-                if 'focA' in v[0]['regulated_entity_gene']:
-                    print('check')
-                BioCyc_regulation_singleTranscriptionFactorBinding.extend(v);
-        return BioCyc_regulation_singleTranscriptionFactorBinding;
+                #if 'focA' in v[0]['regulated_entity_gene']:
+                #    print('check')
+                #if 'nanC' in v[0]['regulated_entity_gene']:
+                #    print('check')
+                regulation_singleRegulators.extend(v);
+            else:
+                genes_multipleRegulators.extend(list(set(genes)));
+                
+        #filter out synonymous gene names that may have slipped in
+        BioCyc_regulation_singleRegulators = [];
+        for row in regulation_singleRegulators:
+            #if 'nanC' in row['regulated_entity_gene']:
+            #    print('check')
+            if len(set(row['regulated_entity_gene']))+len(set(genes_multipleRegulators))==len(set(row['regulated_entity_gene']+genes_multipleRegulators)):
+                BioCyc_regulation_singleRegulators.append(row);
+
+        #print(len(BioCyc_regulation_transcriptionFactorBinding))
+        #print(len(regulation_singleRegulators))
+        #print(len(BioCyc_regulation_singleRegulators))
+
+        return BioCyc_regulation_singleRegulators;
 
     ##Mapping between BioCyc And COBRA functions
     def map_BioCyc2COBRA(

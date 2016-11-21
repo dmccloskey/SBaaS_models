@@ -58,19 +58,19 @@ from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 iobase = base_importData();
 iobase.read_json(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_regulation_transcriptionFactorBinding.json');
-BioCyc_regulation_transcriptionFactorBinding = iobase.data;
+    '/_output/BioCyc_regulation.json');
+regulation_O = iobase.data;
 
-BioCyc_regulation_singleTranscriptionFactorBinding = biocyc01_dep.filter_singleTUGenes_BioCycRegulation(
-    BioCyc_regulation_transcriptionFactorBinding)
+BioCyc_regulation_1reg = biocyc01_dep.filter_singleRegulatorGenes_BioCycRegulation(
+    regulation_O)
 
-iobase = base_exportData(BioCyc_regulation_singleTranscriptionFactorBinding);
+iobase = base_exportData(BioCyc_regulation_1reg);
 iobase.write_dict2json(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_regulation_singleTranscriptionFactorBinding.json');
+    '/_output/BioCyc_regulation_1reg.json');
 iobase.write_dict2csv(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_regulation_singleTranscriptionFactorBinding.csv');
+    '/_output/BioCyc_regulation_1reg.csv');
 
 print('check')
 
