@@ -107,6 +107,41 @@ class models_BioCyc_dependencies():
         #reformat the counts into a list of dictionaries
         data_O = [{'parent_class':k,'frequency':v} for k,v in counts_O.items()];
         return data_O;
+    def filter_singleTUGenes_BioCycRegulation(self,
+        BioCyc_regulation_transcriptionFactorBinding):
+        '''
+        filter in genes whose promoter
+        is controlled by a single transcription
+        factor
+        INPUT:
+        BioCyc_regulation = [{}] of BioCyc regulation where 
+            parent_classes = '("Transcription-Factor-Binding")'
+        '''
+        genes2TF_dict = {};
+        for row in BioCyc_regulation_transcriptionFactorBinding:
+            #if row['regulated_entity_gene']:
+            if row['regulated_entity_promoter']:
+                genes = [];
+                for p in row['regulated_entity_promoter']:
+                    genes.extend(self.parse_transcriptionUnit(p))
+                #for gene in row['regulated_entity_gene']:
+                for gene in genes:
+                    if not gene in genes2TF_dict.keys():
+                        genes2TF_dict[gene] = []
+                    genes2TF_dict[gene].append(row)
+
+        BioCyc_regulation_singleTranscriptionFactorBinding = [];
+        for gene,v in genes2TF_dict.items():
+            regulators = [];
+            if gene == 'focA':
+                print('check');
+            for r in v:
+                regulators.append(r['regulator']);
+            if len(list(set(regulators)))==1:
+                if 'focA' in v[0]['regulated_entity_gene']:
+                    print('check')
+                BioCyc_regulation_singleTranscriptionFactorBinding.extend(v);
+        return BioCyc_regulation_singleTranscriptionFactorBinding;
 
     ##Mapping between BioCyc And COBRA functions
     def map_BioCyc2COBRA(

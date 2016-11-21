@@ -52,14 +52,29 @@ biocyc01_dep = models_BioCyc_dependencies();
 from SBaaS_models.models_COBRA_dependencies import models_COBRA_dependencies
 cobra01_dep = models_COBRA_dependencies();
 
-regulation_O = biocyc01.getJoin_regulatorsAndRegulatedEntities_databaseAndParentClasses_modelsBioCycRegulationAndAll(
-    database_I='ECOLI',
-    parent_classes_I='("Transcription-Factor-Binding")')
+sys.path.append(pg_settings.datadir_settings['workspace']+'/sbaas_shared')
+from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
+
+iobase = base_importData();
+iobase.read_json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc_regulation_transcriptionFactorBinding.json');
+BioCyc_regulation_transcriptionFactorBinding = iobase.data;
+
+BioCyc_regulation_singleTranscriptionFactorBinding = biocyc01_dep.filter_singleTUGenes_BioCycRegulation(
+    BioCyc_regulation_transcriptionFactorBinding)
+
+iobase = base_exportData(BioCyc_regulation_singleTranscriptionFactorBinding);
+iobase.write_dict2json(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc_regulation_singleTranscriptionFactorBinding.json');
+iobase.write_dict2csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/BioCyc_regulation_singleTranscriptionFactorBinding.csv');
 
 print('check')
 
-sys.path.append(pg_settings.datadir_settings['workspace']+'/sbaas_shared')
-from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
+
 
 #analysis_ids_Metabolomics_str = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo01,\
 #ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo02,\
