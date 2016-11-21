@@ -107,7 +107,7 @@ class models_BioCyc_dependencies():
         #reformat the counts into a list of dictionaries
         data_O = [{'parent_class':k,'frequency':v} for k,v in counts_O.items()];
         return data_O;
-    def filter_singleTUGenes_BioCycRegulation(self,
+    def filter_singleRegulatorGenes_BioCycRegulation(self,
         BioCyc_regulation_transcriptionFactorBinding):
         '''
         filter in genes whose promoter
@@ -120,6 +120,12 @@ class models_BioCyc_dependencies():
         genes2TF_dict = {};
         for row in BioCyc_regulation_transcriptionFactorBinding:
             #if row['regulated_entity_gene']:
+            #NOTE: there are gene synonyms with only 1 entry that
+            #      do not have matching rows for regulators
+            #   e.g., foc2 and focA: foc2 will pull out 1 row, but focA will pull out all
+            #         foc2 will be identified as a singleRegulatorGene, but focA will not
+            #         list of genes associated with foc2 will point back to focA, which
+            #         will add focA to the list of singleRegulatorGenes
             if row['regulated_entity_promoter']:
                 genes = [];
                 for p in row['regulated_entity_promoter']:
