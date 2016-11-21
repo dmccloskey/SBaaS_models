@@ -61,8 +61,12 @@ iobase.read_json(
     '/_output/BioCyc_regulation.json');
 regulation_O = iobase.data;
 
+#protein-mediated-translation-regulation not annotated
+gmr_str = 'fusA,rplA,rplE,rplF,rplJ,rplK,rplL,rplN,rplO,rplR,rplX,rpmD,rpmJ,rpoB,rpoC,rpsB,rpsE,rpsG,rpsH,rpsL,rpsN,secY,tsf,tufA'
+gmr = gmr_str.split(',');
 BioCyc_regulation_1reg = biocyc01_dep.filter_singleRegulatorGenes_BioCycRegulation(
-    regulation_O)
+    regulation_O,
+    genes_multipleRegulators_I=gmr)
 
 iobase = base_exportData(BioCyc_regulation_1reg);
 iobase.write_dict2json(

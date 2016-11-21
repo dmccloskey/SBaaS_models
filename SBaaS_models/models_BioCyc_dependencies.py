@@ -108,7 +108,8 @@ class models_BioCyc_dependencies():
         data_O = [{'parent_class':k,'frequency':v} for k,v in counts_O.items()];
         return data_O;
     def filter_singleRegulatorGenes_BioCycRegulation(self,
-        BioCyc_regulation_transcriptionFactorBinding):
+        BioCyc_regulation,
+        genes_multipleRegulators_I=[]):
         '''
         filter in genes whose promoter
         is controlled by a single transcription
@@ -118,7 +119,7 @@ class models_BioCyc_dependencies():
             parent_classes = '("Transcription-Factor-Binding")'
         '''
         genes2TF_dict = {};
-        for row in BioCyc_regulation_transcriptionFactorBinding:
+        for row in BioCyc_regulation:
             #if row['regulated_entity_gene']:
             #NOTE: there are gene synonyms with only 1 entry that
             #      do not have matching rows for regulators
@@ -138,13 +139,16 @@ class models_BioCyc_dependencies():
 
         #filter out genes with multiple regulators
         regulation_singleRegulators = [];
-        genes_multipleRegulators = [];
+        if genes_multipleRegulators_I:
+            genes_multipleRegulators = genes_multipleRegulators_I;
+        else:
+            genes_multipleRegulators = [];
         for gene,v in genes2TF_dict.items():
             regulators = [];
             genes = [];
             #if gene == 'focA':
             #    print('check');
-            #if gene == 'nanC':
+            #if gene == 'rplE':
             #    print('check');
             for r in v:
                 genes.extend(r['regulated_entity_gene']);
@@ -152,7 +156,7 @@ class models_BioCyc_dependencies():
             if len(list(set(regulators)))==1:
                 #if 'focA' in v[0]['regulated_entity_gene']:
                 #    print('check')
-                #if 'nanC' in v[0]['regulated_entity_gene']:
+                #if 'rplE' in v[0]['regulated_entity_gene']:
                 #    print('check')
                 regulation_singleRegulators.extend(v);
             else:
@@ -161,12 +165,12 @@ class models_BioCyc_dependencies():
         #filter out synonymous gene names that may have slipped in
         BioCyc_regulation_singleRegulators = [];
         for row in regulation_singleRegulators:
-            #if 'nanC' in row['regulated_entity_gene']:
+            #if 'rplE' in row['regulated_entity_gene']:
             #    print('check')
             if len(set(row['regulated_entity_gene']))+len(set(genes_multipleRegulators))==len(set(row['regulated_entity_gene']+genes_multipleRegulators)):
                 BioCyc_regulation_singleRegulators.append(row);
 
-        #print(len(BioCyc_regulation_transcriptionFactorBinding))
+        #print(len(BioCyc_regulation))
         #print(len(regulation_singleRegulators))
         #print(len(BioCyc_regulation_singleRegulators))
 
