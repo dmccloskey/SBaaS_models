@@ -1534,6 +1534,73 @@ class models_BioCyc_query(sbaas_template_query):
             output_O=output_O,
             dictColumn_I=dictColumn_I);
         return data_O;
+    def get_rows_namesAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
+        self,
+        names_I=None,
+        parent_classes_I = '("Transcription-Units")',
+        database_I='ECOLI',
+        query_I={},
+        output_O='listDict',
+        dictColumn_I=None):
+        '''SELECT name FROM models_biocyc_polymerSegments
+        WHERE name LIKE [] AND parent_classes LIKE []'''
+        
+        tables = ['models_biocyc_polymerSegments']
+
+        # make the query
+        query = {};
+        query['select'] = [
+            {"table_name":tables[0]},
+            ];
+        
+
+        query['where'] = [
+            {"table_name":tables[0],
+            'column_name':'database',
+            'value':database_I,
+            'operator':'LIKE',
+            'connector':'AND'
+                }]
+        if names_I:
+            names_str = self.convert_list2string(names_I);
+            names = "('{%s}'::text[])" %names_str;
+            query['where'].append({"table_name":tables[0],
+            'column_name':'name',
+            'value':names,
+            'operator':'=ANY',
+            'connector':'AND'})
+        if parent_classes_I:
+            query['where'].append({"table_name":tables[0],
+                'column_name':'parent_classes',
+                'value':parent_classes_I,
+                'operator':'LIKE',
+                'connector':'AND'
+                    })
+
+        query['order_by'] = [
+            {"table_name":tables[0],
+            'column_name':'name',
+            'order':'ASC',
+            },
+            {"table_name":tables[0],
+            'column_name':'parent_classes',
+            'order':'ASC',
+            },
+        ];
+
+        #additional blocks
+        for k,v in query_I.items():
+            if not k in query.keys():
+                query[k] = [];
+            for r in v:
+                query[k].append(r);
+        
+        data_O = self.get_rows_tables(
+            tables_I=tables,
+            query_I=query,
+            output_O=output_O,
+            dictColumn_I=dictColumn_I);
+        return data_O;
 
     #models_biocyc_proteinFeatures
     def get_rows_featureOfAndDatabase_modelsBioCycProteinFeatures(
@@ -3134,8 +3201,9 @@ class models_BioCyc_query(sbaas_template_query):
             #    data_O.append(tmp);
         return data_O;
     
-    def getParsed_genesAndAccessionsAndSynonyms_namesAndDatabase_modelsBioCycPolymerSegments(
-        self,names_I,database_I='ECOLI',
+    def getParsed_genesAndAccessionsAndSynonyms_namesAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
+        self,names_I=[],database_I='ECOLI',
+        parent_classes_I=None,
         query_I={},
         output_O='listDict',
         dictColumn_I=None):
@@ -3145,13 +3213,15 @@ class models_BioCyc_query(sbaas_template_query):
         models_biocyc_polymerSegments.synonyms
         FROM models_biocyc_polymerSegments
         WHERE models_biocyc_polymerSegments.name =ANY
+        AND models_biocyc_polymerSegments.parent_classes LIKE
         AND models_biocyc_polymerSegments.database LIKE '''
 
         dependencies = models_BioCyc_dependencies();
 
         data = [];
-        biocyc_polymerSegments = self.get_rows_namesAndDatabase_modelsBioCycPolymerSegments(
-            names_I,database_I='ECOLI',
+        biocyc_polymerSegments = self.get_rows_namesAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
+            names_I=names_I,database_I=database_I,
+            parent_classes_I=parent_classes_I,
             query_I={},
             output_O='listDict',
             dictColumn_I=None);
@@ -3397,6 +3467,38 @@ class models_BioCyc_query(sbaas_template_query):
         #TODO: recursively pull out all of the regulator components
 
         return biocyc_polymerSegments
+
+    def getParsed_parentClasses_modelsBioCycPolymerSegments(
+        self,database_I='ECOLI'
+        ):
+        ''' '''
+        
+        dependencies = models_BioCyc_dependencies();
+        from SBaaS_base.postgresql_orm import execute_query
+        parent_classes = [];
+        try:
+            cmd = '''SELECT parent_classes
+            FROM "models_biocyc_polymerSegments"
+            WHERE 1=1
+            GROUP BY parent_classes
+            ORDER BY parent_classes ASC; ''';
+            parent_classes = [dict(d) for d in execute_query(self.session,cmd,
+                verbose_I=False,
+                execute_I=True,
+                commit_I=False,
+                return_response_I=True,
+                return_cmd_I=False)];
+        except SQLAlchemyError as e:
+            print(e);
+            
+        parent_classes_O = [];
+        for d in parent_classes:
+            pclasses = dependencies.convert_bioCycList2List(d['parent_classes']);
+            for pc in pclasses:
+                if not pc in parent_classes_O:
+                    parent_classes_O.append(pc);
+
+        return parent_classes_O;
 
     #Complex queries
     def getComplex_transcriptionUnitParentClasses(self,tus_I,database_I='ECOLI',query_I={}):

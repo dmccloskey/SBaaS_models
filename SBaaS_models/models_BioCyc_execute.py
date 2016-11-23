@@ -854,9 +854,10 @@ class models_BioCyc_execute(models_BioCyc_io):
             dictColumn_I=None);
         genes = list(set([g['gene'] for g in biocyc_pathways if g['gene']!='']));
         #join list of genes with alternative identifiers
-        biocyc_genes = self.getParsed_genesAndAccessionsAndSynonyms_namesAndDatabase_modelsBioCycPolymerSegments(
+        biocyc_genes = self.getParsed_genesAndAccessionsAndSynonyms_namesAndParentClassesAndDatabase_modelsBioCycPolymerSegments(
             names_I=genes,
             database_I='ECOLI',
+            parent_classes_I=None,
             query_I={},
             output_O='listDict',
             dictColumn_I=None);

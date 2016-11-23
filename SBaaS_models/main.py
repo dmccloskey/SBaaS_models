@@ -55,31 +55,6 @@ cobra01_dep = models_COBRA_dependencies();
 sys.path.append(pg_settings.datadir_settings['workspace']+'/sbaas_shared')
 from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 
-iobase = base_importData();
-iobase.read_json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_regulation.json');
-regulation_O = iobase.data;
-
-#protein-mediated-translation-regulation not annotated
-gmr_str = 'fusA,rplA,rplE,rplF,rplJ,rplK,rplL,rplN,rplO,rplR,rplX,rpmD,rpmJ,rpoB,rpoC,rpsB,rpsE,rpsG,rpsH,rpsL,rpsN,secY,tsf,tufA'
-gmr = gmr_str.split(',');
-BioCyc_regulation_1reg = biocyc01_dep.filter_singleRegulatorGenes_BioCycRegulation(
-    regulation_O,
-    genes_multipleRegulators_I=gmr)
-
-iobase = base_exportData(BioCyc_regulation_1reg);
-iobase.write_dict2json(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_regulation_1reg.json');
-iobase.write_dict2csv(
-    pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc_regulation_1reg.csv');
-
-print('check')
-
-
-
 #analysis_ids_Metabolomics_str = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo01,\
 #ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo02,\
 #ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo03,\
@@ -157,6 +132,41 @@ print('check')
 #sigComponents.update(sigMets);
 #sigComponents.update(sigExpression);
 #sigComponents.update(sigFluxes);
+
+#data_O = [];
+
+#patternMatch_I='novel +,\
+#overcompensation +,\
+#partially-restored +,\
+#reinforced +,\
+#restored fast +,\
+#unrestored +';
+
+#ccu = 'log2(FC),\
+#mmol*gDW-1*hr-1_FC-mean_normalized,\
+#umol*gDW-1_glog_normalized';
+
+##optional_constraint_I = 'AND (correlation_coefficient > 0.88 OR correlation_coefficient < -0.88)';
+#optional_constraint_I = None;
+
+#correlation_coefficient_threshold_I = 0.88;
+
+#data_O = execute_regulationAgreementCorrelationPatterns(
+#    session,
+#    BioCyc2COBRA_regulationAndInteraction,
+#    met_ids_deformatted,
+#    cobra01_dep,
+#    analysis_ids,
+#    cgn=None,
+#    sna=None,
+#    patternMatch=patternMatch_I,
+#    ccu=ccu,
+#    distanceMeasure=None,
+#    table_name = "data_stage02_quantification_correlationPattern",
+#    optional_constraint_I=optional_constraint_I,
+#    pvalue_threshold_I=None,
+#    correlation_coefficient_threshold_I=correlation_coefficient_threshold_I,
+#    )  
 
 #############################
 ##make a dummy set of sigComponents for metSum
