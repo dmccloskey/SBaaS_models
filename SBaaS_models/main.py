@@ -151,7 +151,8 @@ correlation_coefficient_threshold_I = 0.88;
 iobase = base_importData();
 iobase.read_csv(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation.csv');
+    '/_output/BioCyc2COBRA_1reg.csv');
+    #'/_output/BioCyc2COBRA_regulation.csv');
 BioCyc2COBRA_1reg = iobase.data;
 
 #read in the analysis_weights
@@ -161,7 +162,7 @@ iobase.read_csv(
     '/BioCyc2COBRA_regulation_mapping/ALEsKOs01_0_11_analysis_weights.csv');
 analysis_weights = {d['analysis_id']:d['weight'] for d in iobase.data}
 
-analysis_groups = {};
+analysis_groups = {aid:aid for aid in analysis_ids_RNASequencing_str.split(',')};
 analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gnd'] = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo01,\
 ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo02,\
 ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo03'
@@ -185,6 +186,7 @@ ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo06,\
 ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo07,\
 ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo08'
 analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11'] = analysis_ids_RNASequencing_str
+
 consensusPerName_O = [];
 consensusPerRegulator_O= [];
 for k,analysis_ids in analysis_groups.items():
@@ -215,11 +217,13 @@ for k,analysis_ids in analysis_groups.items():
 iobase = base_exportData(consensusPerName_O);
 iobase.write_dict2csv(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_consensusPerName.csv');
+    '/_output/BioCyc2COBRA_1reg_consensusPerName.csv');
+    #'/_output/BioCyc2COBRA_regulation_consensusPerName.csv');
 iobase = base_exportData(consensusPerRegulator_O);
 iobase.write_dict2csv(
     pg_settings.datadir_settings['workspace_data']+\
-    '/_output/BioCyc2COBRA_regulation_consensusPerRegulator.csv');
+    '/_output/BioCyc2COBRA_1reg_consensusPerRegulator.csv');
+    #'/_output/BioCyc2COBRA_regulation_consensusPerRegulator.csv');
 
 #############################
 ##make a dummy set of sigComponents for metSum
