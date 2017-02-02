@@ -1,4 +1,4 @@
-#SBaaS
+﻿#SBaaS
 from .models_BioCyc_query import models_BioCyc_query
 from SBaaS_base.sbaas_template_io import sbaas_template_io
 from .models_BioCyc_dependencies import models_BioCyc_dependencies
@@ -959,8 +959,14 @@ class models_BioCyc_io(models_BioCyc_query,
             reg_tu_dict['transcription_unit'] = d['transcription_unit']
             reg_tu_dict['transcription_unit_'] = transcription_unit[d['transcription_unit']];
             # convert mode to float
-            if d['mode'] == '+': mode = 1
-            elif d['mode'] == '-': mode = 2
+            if d['mode'] == '+': 
+                mode = 1
+            elif d['mode'] == '-':
+                mode = 2
+            elif d['mode'] == '0':
+                mode = 3;
+            else: 
+                mode = 3;
             #if d['mode'] == '+': mode = 1
             #elif d['mode'] == '-': mode = -1
             reg_tu_dict['mode'] = d['mode'];
