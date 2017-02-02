@@ -1,13 +1,13 @@
 ﻿import sys
-#sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
-sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
+sys.path.append('C:/Users/dmccloskey-sbrg/Documents/GitHub/SBaaS_base')
+#sys.path.append('C:/Users/dmccloskey/Documents/GitHub/SBaaS_base')
 from SBaaS_base.postgresql_settings import postgresql_settings
 from SBaaS_base.postgresql_orm import postgresql_orm
 
 # read in the settings file
-#filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
+filename = 'C:/Users/dmccloskey-sbrg/Google Drive/SBaaS_settings/settings_metabolomics.ini';
 #filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_labtop.ini';
-filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
+#filename = 'C:/Users/dmccloskey/Google Drive/SBaaS_settings/settings_metabolomics_remote.ini';
 pg_settings = postgresql_settings(filename);
 
 # connect to the database from the settings file
@@ -55,7 +55,50 @@ cobra01_dep = models_COBRA_dependencies();
 sys.path.append(pg_settings.datadir_settings['workspace']+'/sbaas_shared')
 from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 
-#analysis_ids_Metabolomics_str = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo01,\
+#import the analysis table
+iobase = base_importData();
+iobase.read_csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/ALEsKOs01_impFeats/ALEsKOs01_0_11_plsScores.csv');
+analysis_table_I = iobase.data;
+
+#import the analysis table
+iobase = base_importData();
+iobase.read_csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/ALEsKOs01_impFeats/ALEsKOs01_0_11_plsScoresRelative.csv');
+relative_table_I = iobase.data;
+
+plsScoresDistances,plsScoresDistancesRelative = execute_PLSScoresDistance(
+    session,
+    analysis_table_I,
+    relative_table_I,
+    naxis_I=2,
+    center_I='median')
+
+iobase = base_exportData(plsScoresDistances);
+iobase.write_dict2csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/ALEsKOs01_0_11_plsScoresDistances.csv');
+
+iobase = base_exportData(plsScoresDistancesRelative);
+iobase.write_dict2csv(
+    pg_settings.datadir_settings['workspace_data']+\
+    '/_output/ALEsKOs01_0_11_plsScoresDistancesRelative.csv');
+
+###################################################################################
+##add additional regulation for bad TF to RNA mappings in EcoCyc
+#iobase = base_importData();
+#iobase.read_csv(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/BioCyc2COBRA_regulation_mapping/BioCyc2COBRA_regulationAndInteraction_consensusAddOns.csv');
+#BioCyc2COBRA_regulationAndInteraction = iobase.data;
+
+##list of metabolite ids
+#met_ids_deformatted_str = '23dpg,6pgc,accoa,acon-C,ade,adn,adp,adpglc,akg,ala-L,amp,arg-L,asn-L,atp,camp,chor,cit,citr-L,cmp,coa,ctp,dadp,damp,datp,dcdp,dcmp,dctp,dhap,dimp,dtdpglu,dtmp,dttp,dump,dutp,f6p,fad,fdp,fum,g1p,g6p,gam6p,gdp,gln-L,glu-L,glutacon,glx,glyc3p,glyclt,gmp,gsn,gthox,gthrd,gtp,gua,his-L,hxan,icit,imp,ins,itp,lac-D,Lcystin,mal-L,met-L,mmal,nad,nadh,nadp,nadph,orn,pep,phe-L,phpyr,Pool_2pg_3pg,pyr,r5p,ru5p-D,s7p,ser-L,skm,succ,thr-L,trp-L,tyr-L,udp,udpg,udpglcur,ump,ura,uri,utp'
+#met_ids_deformatted = met_ids_deformatted_str.split(',')
+
+#_ta_ids_Metabolomics_str = 'ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo01,\
 #ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo02,\
 #ALEsKOs01_Metabolomics_0_evo04_0_11_evo04gndEvo03,\
 #ALEsKOs01_Metabolomics_0_evo04_0_11_evo04sdhCBEvo01,\
@@ -122,6 +165,10 @@ from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 #ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo07,\
 #ALEsKOs01_sampledFluxes_0_evo04_0_11_evo04pgiEvo08'
 
+#analysis_ids = ','.join([analysis_ids_Metabolomics_str,
+#    analysis_ids_RNASequencing_str,
+#    analysis_ids_sampledFluxes_str]);
+
 #sigMets,sigExpression,sigFluxes = execute_getSignificantComponents(
 #    session,
 #    analysis_ids_Metabolomics_str,
@@ -133,7 +180,38 @@ from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 ##sigComponents.update(sigExpression);
 ##sigComponents.update(sigFluxes);
 
-#data_O = [];
+##read in 1reg consensus and all reg consesus
+#iobase = base_importData();
+#iobase.read_csv(
+#    pg_settings.datadir_settings['workspace_data']+\
+#    '/_output/BioCyc2COBRA_1reg_consensusPerRegulator.csv');
+#consensusPerRegulator_1 = iobase.data;
+
+##reformat into a dictionary
+##add entries for pvalue and correlation_coefficient
+#consensusPerRegulator_dict = {};
+#for d in consensusPerRegulator_1:
+#    aid = d['analysis_id'].replace('Metabolomics_','')\
+#            .replace('RNASequencing_','')\
+#            .replace('sampledFluxes_','');
+#    regulator = d['regulator'];
+#    if not aid in consensusPerRegulator_dict.keys():
+#        consensusPerRegulator_dict[aid]={};
+#    if not regulator in consensusPerRegulator_dict[aid].keys():
+#        consensusPerRegulator_dict[aid][regulator] = [];
+#    tmp = copy.copy(d);
+#    tmp['pvalue']=1e-3;
+#    #ensure only positive patternMatch
+#    if d['pattern_match']=='1/1/2000':
+#        d['pattern_match'] = '1-1-0';
+#    elif d['pattern_match']=='2/1/2000':
+#        d['pattern_match'] = '2-1-0';
+#    if d['pattern_match_description'][-1]=='-':
+#        tmp['pattern_match_description'],tmp['pattern_match'] = invert_pattern(d['pattern_match_description'],d['pattern_match'])
+#        tmp['correlation_coefficient']=-1.0;
+#    else:
+#        tmp['correlation_coefficient']=1.0;
+#    consensusPerRegulator_dict[aid][regulator].append(tmp);
 
 #patternMatch_I='novel +,\
 #overcompensation +,\
@@ -142,88 +220,53 @@ from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 #restored fast +,\
 #unrestored +';
 
-#ccu = 'log2(FC)';
+#ccu = 'log2(FC),\
+#mmol*gDW-1*hr-1_FC-mean_normalized,\
+#umol*gDW-1_glog_normalized';
+
+##optional_constraint_I = 'AND (correlation_coefficient > 0.88 OR correlation_coefficient < -0.88)';
 #optional_constraint_I = None;
 
 #correlation_coefficient_threshold_I = 0.88;
 
-##read in the BioCyc2Cobra 1 regulator regulation
-#iobase = base_importData();
-#iobase.read_csv(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    #'/_output/BioCyc2COBRA_1reg.csv');
-#    '/_output/BioCyc2COBRA_regulation.csv');
-#BioCyc2COBRA_1reg = iobase.data;
+#data_O = execute_regulationAgreementCorrelationPatterns(
+#    session,
+#    BioCyc2COBRA_regulationAndInteraction,
+#    met_ids_deformatted,
+#    cobra01_dep,
+#    analysis_ids,
+#    sigComponents=sigExpression,
+#    cgn=None,
+#    sna=None,
+#    patternMatch=patternMatch_I,
+#    ccu=ccu,
+#    distanceMeasure=None,
+#    table_name = "data_stage02_quantification_correlationPattern",
+#    optional_constraint_I=optional_constraint_I,
+#    pvalue_threshold_I=None,
+#    correlation_coefficient_threshold_I=correlation_coefficient_threshold_I,
+#    left_data_I={},
+#    right_data_I=consensusPerRegulator_dict,
+#    )   
 
-##read in the analysis_weights
-#iobase = base_importData();
-#iobase.read_csv(
-#    pg_settings.datadir_settings['workspace_data']+\
-#    '/BioCyc2COBRA_regulation_mapping/ALEsKOs01_0_11_analysis_weights.csv');
-#analysis_weights = {d['analysis_id']:d['weight'] for d in iobase.data}
-
-#analysis_groups = {aid:aid for aid in analysis_ids_RNASequencing_str.split(',')};
-#analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gnd'] = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo01,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo02,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04gndEvo03'
-#analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCB'] = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo01,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo02,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04sdhCBEvo03'
-#analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiA'] = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo01,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo02,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo03,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04tpiAEvo04'
-#analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrr'] = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo01,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo02,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo03,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04ptsHIcrrEvo04'
-#analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgi'] = 'ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo01,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo02,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo03,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo04,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo05,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo06,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo07,\
-#ALEsKOs01_RNASequencing_0_evo04_0_11_evo04pgiEvo08'
-#analysis_groups['ALEsKOs01_RNASequencing_0_evo04_0_11'] = analysis_ids_RNASequencing_str
-
-#consensusPerName_O = [];
-#consensusPerRegulator_O= [];
-#for k,analysis_ids in analysis_groups.items():
-#    #join, count, select the consensus per regulator and per regulation name
-#    consensusPerName,consensusPerRegulator = execute_regulationConsensusCorrelationPatterns(
-#        session,
-#        BioCyc2COBRA_1reg_regulation=BioCyc2COBRA_1reg,
-#        analysis_ids=analysis_ids,
-#        sigComponents=sigExpression,
-#        sna=None,
-#        cgn=None,
-#        patternMatch=patternMatch_I,
-#        ccu=ccu,
-#        distanceMeasure='pearson',
-#        table_name = "data_stage02_quantification_correlationPattern",
-#        optional_constraint_I=optional_constraint_I,
-#        pvalue_threshold_I=None,
-#        correlation_coefficient_threshold_I=correlation_coefficient_threshold_I,
-#        analysis_weights_I = analysis_weights,
-#        ) 
-#    for d in consensusPerName:
-#        d['analysis_id']=k;
-#    consensusPerName_O.extend(consensusPerName)
-#    for d in consensusPerRegulator:
-#        d['analysis_id']=k;
-#    consensusPerRegulator_O.extend(consensusPerRegulator)
-
-#iobase = base_exportData(consensusPerName_O);
+#iobase = base_exportData(data_O);
 #iobase.write_dict2csv(
 #    pg_settings.datadir_settings['workspace_data']+\
-#    #'/_output/BioCyc2COBRA_1reg_consensusPerName.csv');
-#    '/_output/BioCyc2COBRA_regulation_consensusPerName.csv');
-#iobase = base_exportData(consensusPerRegulator_O);
+#    '/_output/BioCyc2COBRA_1reg_regulationAndInteractionConsensusCorrelationPattern_data_O.csv');
+##     '/_output/BioCyc2COBRA_regulationAndInteractionConsensusCorrelationPattern_data_O.csv');
+
+#dataSummary_O = count_regulationAgreementCorrelation(
+#    data_O,
+#    pvalue_threshold = None,
+#    correlation_coefficient_threshold = None)
+
+#iobase = base_exportData(dataSummary_O);
 #iobase.write_dict2csv(
 #    pg_settings.datadir_settings['workspace_data']+\
-#    #'/_output/BioCyc2COBRA_1reg_consensusPerRegulator.csv');
-#    '/_output/BioCyc2COBRA_regulation_consensusPerRegulator.csv');
+#    '/_output/BioCyc2COBRA_1reg_regulationAndInteractionConsensusCorrelationPattern_dataSummary_O.csv');
+##     '/_output/BioCyc2COBRA_regulationAndInteractionConsensusCorrelationPattern_dataSummary_O.csv');
+#####################################################################################################
+
 
 #############################
 ##make a dummy set of sigComponents for metSum
@@ -314,62 +357,61 @@ from ALEsKOs01_shared.ALEsKOs01_commonRoutines import *
 #iobase = base_exportData(subpathwayPromotersInhibitorsGrowth);
 #iobase.write_dict2csv(filename_O);
 
-filename_I = pg_settings.datadir_settings['workspace_data']+\
-    '/BioCyc2COBRA_regulation_data/ALEsKOs01_0_11_biomassProducingPathwaysCorrelationPatterns_subpathwayPromotersInhibitorsGrowth.csv'
+#filename_I = pg_settings.datadir_settings['workspace_data']+\
+#    '/BioCyc2COBRA_regulation_data/ALEsKOs01_0_11_biomassProducingPathwaysCorrelationPatterns_subpathwayPromotersInhibitorsGrowth.csv'
 
-iobase = base_importData();
-iobase.read_csv(filename_I);
-subpathwayPromotersInhibitorsGrowth = iobase.data;
+#iobase = base_importData();
+#iobase.read_csv(filename_I);
+#subpathwayPromotersInhibitorsGrowth = iobase.data;
 
-from ddt_python.ddt_container_heatmap import ddt_container_heatmap
+#from ddt_python.ddt_container_heatmap import ddt_container_heatmap
 
-data_1 = [d for d in subpathwayPromotersInhibitorsGrowth if d['category_id']=='expression']
-data1_keys = [
-    'analysis_id',
-    'pathway_id',
-    'category_id',
-    ]
-data1_nestkeys = [
-    'analysis_id',
-    'pathway_id'
-    ];
-data1_keymap = {
-    'xdata':'analysis_index',
-    'ydata':'pathway_index',
-    'zdata':'promoting_or_inhibiting',
-    'rowslabel':'analysis_id',
-    'columnslabel':'pathway_id',
-    'rowsindex':'analysis_index',
-    'columnsindex':'pathway_index',
-    'rowsleaves':'analysis_index',
-    'columnsleaves':'pathway_index'
-    };
+#data_1 = [d for d in subpathwayPromotersInhibitorsGrowth if d['category_id']=='expression']
+#data1_keys = [
+#    'analysis_id',
+#    'pathway_id',
+#    'category_id',
+#    ]
+#data1_nestkeys = [
+#    'analysis_id',
+#    'pathway_id'
+#    ];
+#data1_keymap = {
+#    'xdata':'analysis_index',
+#    'ydata':'pathway_index',
+#    'zdata':'promoting_or_inhibiting',
+#    'rowslabel':'analysis_id',
+#    'columnslabel':'pathway_id',
+#    'rowsindex':'analysis_index',
+#    'columnsindex':'pathway_index',
+#    'rowsleaves':'analysis_index',
+#    'columnsleaves':'pathway_index'
+#    };
 
-# make the ddt .js file
-nsvgtable = ddt_container_heatmap();
-nsvgtable.make_container_heatmap(
-    data_1=data_1,
-    svgcolorcategory='blue2gold64RBG',
-    svgcolordomain='min,max',
-    data1_keymap=data1_keymap,
-    data1_nestkeys=data1_nestkeys,
-    data1_keys=data1_keys,
-     svgparameters_I= {
-         'svgcellsize':18,
-         'svgmargin':{ 'top': 200, 'right': 50, 'bottom': 100, 'left': 200 },
-         'svgcolorscale':'quantile',
-         'svgcolorcategory':'blue2gold64RBG',
-         'svgcolordomain':'min,max',
-         'svgcolordatalabel':'value',
-         'svgdatalisttileid':'tile1'}
-        );
+## make the ddt .js file
+#nsvgtable = ddt_container_heatmap();
+#nsvgtable.make_container_heatmap(
+#    data_1=data_1,
+#    svgcolorcategory='blue2gold64RBG',
+#    svgcolordomain='min,max',
+#    data1_keymap=data1_keymap,
+#    data1_nestkeys=data1_nestkeys,
+#    data1_keys=data1_keys,
+#     svgparameters_I= {
+#         'svgcellsize':18,
+#         'svgmargin':{ 'top': 200, 'right': 50, 'bottom': 100, 'left': 200 },
+#         'svgcolorscale':'quantile',
+#         'svgcolorcategory':'blue2gold64RBG',
+#         'svgcolordomain':'min,max',
+#         'svgcolordatalabel':'value',
+#         'svgdatalisttileid':'tile1'}
+#        );
 
-#write the file to disk
-filename_str = pg_settings.datadir_settings['visualization_data']+\
-    '/tmp/ALEsKOs01_0_11_biomassProducingPathwaysCorrelationPatterns_difference.json'
-with open(filename_str,'w') as file:
-    file.write(nsvgtable.get_allObjects());
-
+##write the file to disk
+#filename_str = pg_settings.datadir_settings['visualization_data']+\
+#    '/tmp/ALEsKOs01_0_11_biomassProducingPathwaysCorrelationPatterns_difference.json'
+#with open(filename_str,'w') as file:
+#    file.write(nsvgtable.get_allObjects());
 #######################
 
 #######################
