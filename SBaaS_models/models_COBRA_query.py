@@ -205,6 +205,19 @@ class models_COBRA_query(sbaas_template_query):
             return rows_O;
         except SQLAlchemyError as e:
             print(e);
+    def get_rows_modelIDAndmetID_dataStage02PhysiologyModelReactions(self,model_id_I,met_id_I):
+        '''Query rows by model_id and ordered locus name that are used'''
+        try:
+            data = self.session.query(data_stage02_physiology_modelReactions).filter(
+                    data_stage02_physiology_modelReactions.model_id.like(model_id_I),
+                    data_stage02_physiology_modelReactions.genes.any(ordered_locus_name_I),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).order_by(
+                    data_stage02_physiology_modelReactions.model_id.asc(),
+                    data_stage02_physiology_modelReactions.rxn_id.asc()).all();
+            rows_O = [d.__repr__dict__() for d in data];
+            return rows_O;
+        except SQLAlchemyError as e:
+            print(e);
     # query genes from data_stage02_physiology_modelReactions
     def get_geneIDs_modelIDAndRxnID_dataStage02PhysiologyModelReactions(
         self,model_id_I,rxn_id_I):
@@ -223,9 +236,25 @@ class models_COBRA_query(sbaas_template_query):
             return genes_unique_O;
         except SQLAlchemyError as e:
             print(e);
+    def get_geneIDs_modelID_dataStage02PhysiologyModelReactions(
+        self,model_id_I):
+        '''Query genes by model_id that are used'''
+        try:
+            data = self.session.query(data_stage02_physiology_modelReactions.genes).filter(
+                    data_stage02_physiology_modelReactions.model_id.like(model_id_I),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).all();
+            genes_all = [];
+            genes_unique_O = [];
+            if data: 
+                for d in data:
+                    genes_all.extend(d.genes);
+                genes_unique_O = list(set(genes_all));
+            return genes_unique_O;
+        except SQLAlchemyError as e:
+            print(e);
     # query metabolites from data_stage02_physiology_modelReactions
     def get_metIDs_modelID_dataStage02PhysiologyModelReactions(self,model_id_I):
-        '''Querry metabolites by model_id that are used'''
+        '''Query metabolites by model_id that are used'''
         try:
             data = self.session.query(data_stage02_physiology_modelReactions.reactants_ids,
                     data_stage02_physiology_modelReactions.products_ids).filter(
@@ -242,19 +271,28 @@ class models_COBRA_query(sbaas_template_query):
         except SQLAlchemyError as e:
             print(e);
     # query reactions from data_stage02_physiology_modelReactions
+    def get_rxnIDs_modelID_dataStage02PhysiologyModelReactions(self,model_id_I):
+        '''Query rxn_ids by model_id that are used'''
+        try:
+            data = self.session.query(data_stage02_physiology_modelReactions.rxn_id).filter(
+                    data_stage02_physiology_modelReactions.model_id.like(model_id_I),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).group_by(
+                    data_stage02_physiology_modelReactions.rxn_id).order_by(
+                    data_stage02_physiology_modelReactions.rxn_id.asc()).all();
+            rxnIDs_O = [d.rxn_id for d in data];
+            return rxnIDs_O;
+        except SQLAlchemyError as e:
+            print(e);
     def get_rxnIDs_modelIDAndOrderedLocusName_dataStage02PhysiologyModelReactions(self,model_id_I,ordered_locus_name_I):
         '''Query rxn_ids by model_id and ordered locus name that are used'''
         try:
-            data = self.session.query(data_stage02_physiology_modelReactions).filter(
+            data = self.session.query(data_stage02_physiology_modelReactions.rxn_id).filter(
                     data_stage02_physiology_modelReactions.model_id.like(model_id_I),
                     data_stage02_physiology_modelReactions.genes.any(ordered_locus_name_I),
-                    data_stage02_physiology_modelReactions.used_.is_(True)).order_by(
-                    data_stage02_physiology_modelReactions.model_id.asc(),
+                    data_stage02_physiology_modelReactions.used_.is_(True)).group_by(
+                    data_stage02_physiology_modelReactions.rxn_id).order_by(
                     data_stage02_physiology_modelReactions.rxn_id.asc()).all();
-            rxnIDs_O = [];
-            if data: 
-                for d in data:
-                    rxnIDs_O.append(d.rxn_id);
+            rxnIDs_O = [d.rxn_id for d in data];
             return rxnIDs_O;
         except SQLAlchemyError as e:
             print(e);
@@ -478,7 +516,8 @@ class models_COBRA_query(sbaas_template_query):
         try:
             data = self.session.query(data_stage02_physiology_modelMetabolites.met_id).filter(
                     data_stage02_physiology_modelMetabolites.model_id.like(model_id_I),
-                    data_stage02_physiology_modelMetabolites.used_.is_(True)).order_by(
+                    data_stage02_physiology_modelMetabolites.used_.is_(True)).group_by(
+                    data_stage02_physiology_modelMetabolites.met_id).order_by(
                     data_stage02_physiology_modelMetabolites.met_id.asc()).all();
             mets_O = [];
             if data: 
