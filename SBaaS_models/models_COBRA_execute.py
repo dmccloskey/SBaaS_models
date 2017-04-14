@@ -392,19 +392,23 @@ class models_COBRA_execute(models_COBRA_io):
     def calculate_geneProteinMetaboliteCoverage(
         self,
         model_id_I,
-        genes_I,
-        proteins_I,
-        metabolites_I):
+        genes_I = [],
+        proteins_I = [],
+        fluxes_I = [],
+        metabolites_I = []):
         '''Calculate the model coverage for 
         A. genes from DNAreseq or RNAseq data that map to
             1. model genes and 2. model reactions
         B. metabolites from quantification or isotopomer data that map to 
             1. model metabolites and 2. model reactions
+        C. fluxes from MFA data that map to
+            1. model reactions
         
         INPUT:
         model_id_I = string
         genes_I = list, strings
-
+        proteins_I = list, strings
+        fluxes_I = list, string
         metabolites = list, strings
         
         OUTPUT:
@@ -439,15 +443,59 @@ class models_COBRA_execute(models_COBRA_io):
         #overlapping genes, proteins, and metabolites
         genes_mapped = list(set([d for d in genes_all if d in genes_I]))
         mets_mapped = list(set([d for d in mets_all if d in metabolites_I]))
-
-        #calculate coverage
-        ngenes = len(genes_unique)
-        nrxns = len(rxns_unique)
-        nmets = len(mets_unique)
         
-        nMappedGenes = len(genes_mapped)
-        nMappedMets = len(mets_mapped)
+        nrxns = len(rxns_unique)
 
+        #calculate coverage for genes
+        ngenes = len(genes_unique)
+        nMappedGenes = len(genes_mapped)
         nMappedRxnsGenes = len(rxn_genes_mapped)
+
+        #calculate coverage for genes
+        nmets = len(mets_unique)        
+        nMappedMets = len(mets_mapped)
         nMappedRxnsMets = len(rxn_mets_mapped)
+
+        #prepare the output structure
+        data_O = {}
+        if genes_I:
+            data_O['genes2ModelGenes'] = {
+                'model_id':model_id_I,
+                'model_component':'genes',
+                'data_component':'genes',
+                'n_model_components':ngenes,
+                'n_mapped_components':nMappedGenes,
+                'fraction_mapped':float(nMappedGenes)/float(ngenes),
+                };
+            data_O['genes2ModelReactions'] = {
+                'model_id':model_id_I,
+                'model_component':'reactions',
+                'data_component':'genes',
+                'n_model_components':nrxns,
+                'n_mapped_components':nMappedRxnsGenes,
+                'fraction_mapped':float(nMappedRxnsGenes)/float(nrxns),
+                };
+        if metabolites_I:
+            data_O['metabolites2ModelMetabolites'] = {
+                'model_id':model_id_I,
+                'model_component':'metabolites',
+                'data_component':'metabolites',
+                'n_model_components':nmets,
+                'n_mapped_components':nMappedMets,
+                'fraction_mapped':float(nMappedMets)/float(nmaps),
+                };
+            data_O['metabolites2ModelReactions'] = {
+                'model_id':model_id_I,
+                'model_component':'reactions',
+                'data_component':'metabolites',
+                'n_model_components':nrxns,
+                'n_mapped_components':nMappedRxnsMets,
+                'fraction_mapped':float(nMappedRxnsMets)/float(nrxns),
+                };
+        if proteins_I:
+            pass;
+        if fluxes_I:
+            pass;
+
+        return data_O
 
