@@ -175,6 +175,18 @@ class models_COBRA_dependencies():
             metabolite_data.append(metabolite_data_tmp);
 
         return model_data,reaction_data,metabolite_data
+    def deformat_geneid(self,gene_id_I):
+        gene_deformatted = gene_id_I
+        gene_deformatted = gene_deformatted.split('_')[0]; #remove the alternate splice variant
+        return gene_deformatted.upper();
+    def decompartementalize_metid(self,met_id_I):
+        met_formatted_lst = met_id_I.split('_')[:-1]
+        met_formatted = '_'.join(met_formatted_lst);
+        return met_formatted;
+    def compartementalize_metid(self,met_id_I,compartment_id_I):
+        met_formatted = met_id_I
+        met_formatted +='_' + compartment_id_I;
+        return met_formatted;
     def format_metid(self,met_id_I,compartment_id_I):
         met_formatted = met_id_I
         met_formatted = re.sub('-','_DASH_',met_formatted)
@@ -185,6 +197,7 @@ class models_COBRA_dependencies():
     def deformat_metid(self,met_id_I):
         met_deformatted = met_id_I
         met_deformatted = re.sub('_DASH_','-',met_deformatted)
+        met_deformatted = met_deformatted.replace('__','-')
         met_deformatted = re.sub('_LPARANTHES_','[(]',met_deformatted)
         met_deformatted = re.sub('_RPARANTHES_','[)]',met_deformatted)
         met_deformatted_lst = met_deformatted.split('_')[:-1]; #remove the compartment
