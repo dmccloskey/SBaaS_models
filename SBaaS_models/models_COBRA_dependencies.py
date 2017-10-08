@@ -229,10 +229,10 @@ class models_COBRA_dependencies():
         # test for a solution:
         cobra_model.optimize();
         #cobra_model.optimize(solver='gurobi');
-        if not cobra_model.solution.f:
+        if not cobra_model.objective.value:
             return False;
         else:
-            print(cobra_model.solution.f);
+            print(cobra_model.objective.value);
             return True;
     def load_model(self,model_file_name_I):
         '''load a cobra model from json or sbml
