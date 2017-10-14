@@ -227,6 +227,7 @@ class models_COBRA_dependencies():
         if description:
             cobra_model.description = description;
         # test for a solution:
+        cobra_model.solver = "glpk"
         cobra_model.optimize();
         #cobra_model.optimize(solver='gurobi');
         if not cobra_model.objective.value:
